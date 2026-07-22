@@ -8,6 +8,10 @@ default: &default
   username: <%= ENV.fetch("DB_USERNAME", "root") %>
   password: <%= ENV["DB_PASSWORD"] %>
   ssl_mode: <%= ENV.fetch("DB_SSL_MODE", Rails.env.production? ? "required" : "disabled") %>
+  # TiDB Cloud does not reliably support the MySQL named locks Rails uses
+  # while running migrations. Render deploys one web instance, so disable
+  # advisory migration locks in production to prevent startup from hanging.
+  advisory_locks: <%= ENV.fetch("DB_ADVISORY_LOCKS", Rails.env.production? ? "false" : "true") == "true" %>
 
 development:
   <<: *default
