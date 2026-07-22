@@ -8,9 +8,13 @@ class SessionsController < ApplicationController
 
   def create
     school = School.find_by("LOWER(code) = ?", credentials[:school_code].to_s.strip.downcase)
-    user = school&.users&.find_by(email: credentials[:email].to_s.strip.downcase, active: true)
+    user = school&.users&.find_by(email: credentials[:email].to_s.strip.downcase)
 
-    if user&.authenticate(credentials[:password])
+    if user&.authenticate(credentials[:password]) && !user.active?
+      record_login(user, false)
+      flash.now[:alert] = "Your account is waiting for administrator approval."
+      render :new, status: :unprocessable_entity
+    elsif user&.authenticate(credentials[:password])
       record_login(user, true)
       return_to = start_new_session_for(user)
       redirect_to return_to || root_path, notice: "Welcome back, #{user.first_name}."

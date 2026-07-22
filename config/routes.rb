@@ -1,10 +1,13 @@
 Rails.application.routes.draw do
   resource :session, only: %i[new create destroy]
+  resource :registration, only: %i[new create]
   resource :profile, only: %i[edit update]
   resources :passwords, param: :token, only: %i[new create edit update]
 
   namespace :admin do
-    resources :users, only: %i[index edit update]
+    resources :users, only: %i[index edit update destroy] do
+      member { patch :approve }
+    end
   end
 
   root "dashboard#index"

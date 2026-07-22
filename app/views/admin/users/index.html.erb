@@ -6,6 +6,23 @@
   <%= form.submit "Search users", class: "primary-button" %>
 <% end %>
 
+<section class="mt-8 overflow-hidden rounded-2xl border border-amber-200 bg-white shadow-sm">
+  <div class="flex items-center justify-between bg-amber-50 px-5 py-4"><div><h2 class="font-bold text-amber-900">Pending approvals</h2><p class="text-xs text-amber-700">Review standard registration requests before allowing access.</p></div><span class="rounded-full bg-amber-200 px-3 py-1 text-xs font-black text-amber-900"><%= @pending_users.count %></span></div>
+  <% if @pending_users.any? %>
+    <ul class="divide-y divide-slate-100">
+      <% @pending_users.each do |user| %>
+        <li class="flex flex-col gap-4 px-5 py-5 sm:flex-row sm:items-center sm:justify-between">
+          <div><p class="font-bold text-slate-900"><%= user.full_name %></p><p class="text-sm text-slate-500"><%= user.email %> · Requested: <%= user.role.humanize %></p></div>
+          <div class="flex flex-col gap-2 sm:flex-row"><%= button_to "Approve", approve_admin_user_path(user), method: :patch, class: "w-full rounded-xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white hover:bg-emerald-700" %><%= button_to "Reject", admin_user_path(user), method: :delete, class: "w-full rounded-xl bg-red-50 px-4 py-3 text-sm font-bold text-red-700 hover:bg-red-100", form: { data: { turbo_confirm: "Reject this registration request?" } } %></div>
+        </li>
+      <% end %>
+    </ul>
+  <% else %>
+    <p class="p-6 text-center text-sm text-slate-500">No registrations are waiting for approval.</p>
+  <% end %>
+</section>
+
+<h2 class="mt-8 text-xl font-bold text-slate-900">Active users</h2>
 <div class="mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
   <% if @users.any? %>
     <ul class="divide-y divide-slate-100">

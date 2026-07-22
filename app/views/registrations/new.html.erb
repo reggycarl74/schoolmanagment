@@ -1,0 +1,21 @@
+<% content_for :title, "Create account · SchoolOS" %>
+<div class="mx-auto mt-10 max-w-2xl">
+  <div class="mb-8 text-center"><p class="text-2xl font-bold text-indigo-700">SchoolOS</p><h1 class="mt-5 text-3xl font-bold text-slate-900">Create your account</h1><p class="mt-2 text-sm text-slate-500">Standard accounts require administrator approval before sign-in.</p></div>
+
+  <%= form_with model: @user, url: registration_path, class: "space-y-6 rounded-3xl border border-slate-200 bg-white p-6 shadow-lg sm:p-8", data: { controller: "password-visibility" } do |form| %>
+    <%= render "shared/form_errors", object: @user %>
+    <div class="grid gap-5 sm:grid-cols-2">
+      <div><%= label_tag "user_school_code", "School code", class: "field-label" %><%= text_field_tag "user[school_code]", params.dig(:user, :school_code), required: true, autocomplete: "organization", placeholder: "DEMO", class: "form-input uppercase" %></div>
+      <div><%= label_tag "user_registration_code", "Registration code (optional)", class: "field-label" %><%= password_field_tag "user[registration_code]", nil, autocomplete: "off", class: "form-input", data: { password_visibility_target: "field" } %></div>
+      <div><%= form.label :first_name, class: "field-label" %><%= form.text_field :first_name, required: true, autocomplete: "given-name", class: "form-input" %></div>
+      <div><%= form.label :last_name, class: "field-label" %><%= form.text_field :last_name, required: true, autocomplete: "family-name", class: "form-input" %></div>
+      <div class="sm:col-span-2"><%= form.label :email, class: "field-label" %><%= form.email_field :email, required: true, autocomplete: "email", class: "form-input" %></div>
+      <div class="sm:col-span-2"><%= form.label :role, "Requested role", class: "field-label" %><%= form.select :role, [["Teacher", "teacher"], ["Registrar", "registrar"], ["Accountant", "accountant"], ["Parent / guardian", "parent"]], {}, class: "form-input" %><p class="mt-2 text-xs text-slate-500">A valid administrator registration code overrides this selection.</p></div>
+      <div><%= form.label :password, class: "field-label" %><%= form.password_field :password, required: true, minlength: 8, autocomplete: "new-password", class: "form-input", data: { password_visibility_target: "field" } %></div>
+      <div><%= form.label :password_confirmation, class: "field-label" %><%= form.password_field :password_confirmation, required: true, minlength: 8, autocomplete: "new-password", class: "form-input", data: { password_visibility_target: "field" } %></div>
+    </div>
+    <div class="flex justify-end"><button type="button" class="text-xs font-bold text-indigo-700" data-action="password-visibility#toggle" data-password-visibility-target="label">Show passwords</button></div>
+    <%= form.submit "Submit registration", class: "primary-button w-full" %>
+    <p class="text-center text-sm text-slate-500">Already registered? <%= link_to "Sign in", new_session_path, class: "font-bold text-indigo-700" %></p>
+  <% end %>
+</div>
