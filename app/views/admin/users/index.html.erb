@@ -1,0 +1,29 @@
+<% content_for :title, "Users & passwords · SchoolOS" %>
+<%= render "shared/section_header", title: "Users & passwords", subtitle: "Manage login passwords for every account in your school", button_text: nil, button_path: nil %>
+
+<%= form_with url: admin_users_path, method: :get, class: "mt-6 flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:flex-row" do |form| %>
+  <%= form.search_field :query, value: params[:query], placeholder: "Search by name or email", class: "form-input flex-1" %>
+  <%= form.submit "Search users", class: "primary-button" %>
+<% end %>
+
+<div class="mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+  <% if @users.any? %>
+    <ul class="divide-y divide-slate-100">
+      <% @users.each do |user| %>
+        <li class="flex flex-col gap-4 px-5 py-5 sm:flex-row sm:items-center sm:justify-between">
+          <div class="flex min-w-0 items-center gap-4">
+            <span class="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 text-xs font-black text-white"><%= user.first_name.first %><%= user.last_name.first %></span>
+            <div class="min-w-0">
+              <p class="truncate font-bold text-slate-900"><%= user.full_name %></p>
+              <p class="truncate text-sm text-slate-500"><%= user.email %></p>
+              <span class="mt-1 inline-flex rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-bold text-indigo-700"><%= user.role.humanize %></span>
+            </div>
+          </div>
+          <%= link_to "Change password", edit_admin_user_path(user), class: "rounded-xl bg-violet-50 px-4 py-3 text-center text-sm font-bold text-violet-700 transition hover:bg-violet-100" %>
+        </li>
+      <% end %>
+    </ul>
+  <% else %>
+    <p class="p-10 text-center text-slate-500">No users match your search.</p>
+  <% end %>
+</div>

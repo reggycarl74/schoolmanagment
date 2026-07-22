@@ -3,6 +3,10 @@ Rails.application.routes.draw do
   resource :profile, only: %i[edit update]
   resources :passwords, param: :token, only: %i[new create edit update]
 
+  namespace :admin do
+    resources :users, only: %i[index edit update]
+  end
+
   root "dashboard#index"
   get "search", to: "search#index", as: :search
 

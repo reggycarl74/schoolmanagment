@@ -15,6 +15,7 @@ class User < ApplicationRecord
   normalizes :email, with: ->(email) { email.strip.downcase }
   validates :first_name, :last_name, :email, presence: true
   validates :email, uniqueness: { scope: :school_id }
+  validates :password, length: { minimum: 8 }, allow_nil: true
 
   def full_name = "#{first_name} #{last_name}"
 end
