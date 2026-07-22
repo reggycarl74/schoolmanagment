@@ -250,6 +250,73 @@ comment.save!
   template.update!(body:, kind:, author: administrator, active: true)
 end
 
+lesson_content = {
+  "MATH" => {
+    topic: "Equivalent fractions and number relationships",
+    objectives: "Identify equivalent fractions.\nGenerate equivalent fractions using multiplication and division.\nExplain solutions using models.",
+    materials: "Fraction strips, number cards, mini whiteboards, learner workbook",
+    content: "Begin with a fraction-strip demonstration and review numerator and denominator. Model how multiplying or dividing both parts of a fraction by the same number creates an equivalent fraction. Learners then work in pairs to match fraction cards before completing guided and independent practice.",
+    homework: "Complete five equivalent-fraction questions and draw a model for two answers."
+  },
+  "ENG" => {
+    topic: "Writing clear descriptive paragraphs",
+    objectives: "Recognize the parts of a paragraph.\nUse sensory vocabulary and precise adjectives.\nDraft and revise a coherent descriptive paragraph.",
+    materials: "Picture prompts, vocabulary cards, sample paragraph, exercise books",
+    content: "Read and discuss a model paragraph, identifying its topic sentence, supporting details, and conclusion. Build a class word bank from a picture prompt. Learners plan, draft, peer-review, and improve one descriptive paragraph.",
+    homework: "Revise the class paragraph and write a second paragraph describing a familiar place."
+  },
+  "SCI" => {
+    topic: "States of matter and changes of state",
+    objectives: "Describe solids, liquids, and gases.\nCompare particle arrangements.\nExplain melting, freezing, evaporation, and condensation.",
+    materials: "Ice, clear cups, water, chart paper, particle-model cards",
+    content: "Use ice and water as an observation activity, then connect the changes learners see to a simple particle model. Groups classify everyday materials and create a diagram showing how heating and cooling cause changes of state.",
+    homework: "Record three examples of changes of state observed at home and explain each one."
+  },
+  "SOC" => {
+    topic: "Community leadership and responsible citizenship",
+    objectives: "Identify community leaders and their responsibilities.\nExplain ways citizens support their community.\nEvaluate solutions to a local community problem.",
+    materials: "Community map, role cards, scenario sheets, chart paper",
+    content: "Discuss leadership roles learners know in their communities. Groups use scenario cards to propose responsible solutions to community problems, identify who should help, and present their recommendations to the class.",
+    homework: "Interview an adult about one community responsibility and summarize the response."
+  },
+  "ICT" => {
+    topic: "Digital safety and strong passwords",
+    objectives: "Recognize personal information that must stay private.\nCreate strong and memorable passwords.\nRespond safely to suspicious messages and links.",
+    materials: "Safety-scenario cards, projector, password checklist, learner workbook",
+    content: "Review examples of personal and public information. Demonstrate the features of a strong password without sharing real passwords. Learners rotate through safety scenarios and decide the safest action for each situation.",
+    homework: "Create a five-point digital-safety poster for display in class."
+  }
+}
+
+seeded_lesson_plans = 0
+CourseSection.joins(:classroom).where(classrooms: { school_id: school.id }, term: terms.first).includes(:subject, :teachers).find_each.with_index do |course, index|
+  teacher = course.teachers.first
+  next unless teacher
+
+  details = lesson_content.fetch(course.subject.code)
+  taught_date = terms.first.starts_on + 7.days + (index % 5).days
+  planned_date = terms.first.starts_on + 21.days + (index % 5).days
+
+  [
+    [ taught_date, :taught, "Introduction: #{details[:topic]}", 8 ],
+    [ planned_date, :ready, "Practice and application: #{details[:topic]}", 10 ]
+  ].each do |lesson_date, status, topic, hour|
+    plan = course.lesson_notes.find_or_initialize_by(teacher:, lesson_date:)
+    plan.assign_attributes(
+      topic:,
+      objectives: details[:objectives],
+      materials: details[:materials],
+      content: details[:content],
+      homework: details[:homework],
+      starts_at: Time.zone.parse(format("%02d:00", hour)),
+      duration_minutes: 45,
+      status:
+    )
+    plan.save!
+    seeded_lesson_plans += 1
+  end
+end
+
 CourseSection.joins(:classroom).where(classrooms: { school_id: school.id }, term: terms.first).includes(:teachers).find_each.with_index do |course, index|
   teacher = course.teachers.first
   next unless teacher
@@ -260,4 +327,5 @@ CourseSection.joins(:classroom).where(classrooms: { school_id: school.id }, term
 end
 
 puts "Seeded #{school.students.count} students, #{school.classrooms.count} classes, #{school.subjects.count} subjects, and #{Grade.joins(enrollment: :student).where(students: { school_id: school.id }).count} exam results."
+puts "Seeded #{seeded_lesson_plans} lesson notes and plans across #{teachers.count} teachers."
 puts "Portal accounts: parent1@example.test / Parent123! and student@example.test / Student123!"
