@@ -12,10 +12,43 @@ class InvoicesController < ApplicationController
   end
 
   def create
-    student = current_school.students.find(invoice_params[:student_id])
     fee = current_school.fee_structures.find(invoice_params[:fee_structure_id])
-    @invoice = Invoice.new(student:, fee_structure: fee, amount: invoice_params[:amount], due_on: invoice_params[:due_on])
-    return redirect_to(invoices_path, notice: "Invoice was created.") if @invoice.save
+    student_ids = Array(invoice_params[:student_ids]).reject(&:blank?).uniq
+    @invoice = Invoice.new(fee_structure: fee)
+
+    if student_ids.empty?
+      @invoice.errors.add(:base, "Select at least one student")
+      load_options
+      return render :new, status: :unprocessable_entity
+    end
+
+    students = current_school.students.active.find(student_ids)
+    created_count = 0
+    skipped_count = 0
+
+    ActiveRecord::Base.transaction do
+      students.each do |student|
+        invoice = Invoice.find_or_initialize_by(student:, fee_structure: fee)
+        if invoice.persisted?
+          skipped_count += 1
+        else
+          invoice.update!(amount: fee.amount, due_on: fee.due_on)
+          created_count += 1
+        end
+      end
+    end
+
+    message = "Generated #{created_count} #{'invoice'.pluralize(created_count)}."
+    message += " Skipped #{skipped_count} existing #{'invoice'.pluralize(skipped_count)}." if skipped_count.positive?
+    redirect_to invoices_path, notice: message
+  rescue ActiveRecord::RecordNotFound
+    @invoice ||= Invoice.new
+    @invoice.errors.add(:base, "One or more selected students or the fee structure is invalid")
+    load_options
+    render :new, status: :unprocessable_entity
+  rescue ActiveRecord::RecordInvalid => error
+    @invoice ||= error.record
+    @invoice.errors.add(:base, error.record.errors.full_messages.to_sentence)
 
     load_options
     render :new, status: :unprocessable_entity
@@ -35,10 +68,10 @@ class InvoicesController < ApplicationController
     Invoice.where(student_id: accessible_students.select(:id))
   end
 
-  def invoice_params = params.expect(invoice: %i[student_id fee_structure_id amount due_on])
+  def invoice_params = params.expect(invoice: [ :fee_structure_id, { student_ids: [] } ])
 
   def load_options
-    @students = current_school.students.active.order(:last_name)
+    @students = current_school.students.active.includes(:classrooms).order(:last_name, :first_name)
     @fees = current_school.fee_structures.includes(:academic_year).order(due_on: :desc)
   end
 end
