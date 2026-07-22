@@ -1,0 +1,19 @@
+visible:
+  school: demo
+  admission_number: V001
+  first_name: Visible
+  last_name: Student
+  date_of_birth: 2015-02-01
+  gender: 0
+  admitted_on: 2026-08-01
+  status: 0
+
+hidden:
+  school: demo
+  admission_number: H001
+  first_name: Hidden
+  last_name: Student
+  date_of_birth: 2015-03-01
+  gender: 1
+  admitted_on: 2026-08-01
+  status: 0

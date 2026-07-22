@@ -1,0 +1,23 @@
+<% content_for :title, "#{@title} · SchoolOS" %>
+
+<div class="flex items-center justify-between">
+  <div>
+    <p class="text-sm font-semibold uppercase tracking-wider text-indigo-600">Directory</p>
+    <h1 class="mt-1 text-3xl font-bold text-slate-900"><%= @title %></h1>
+  </div>
+</div>
+
+<div class="mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+  <% if @records.any? %>
+    <ul class="divide-y divide-slate-100">
+      <% @records.each do |record| %>
+        <li class="flex items-center justify-between px-6 py-4">
+          <span class="font-medium text-slate-900"><%= record.respond_to?(:full_name) ? record.full_name : (record.try(:name) || record.try(:title) || "Record ##{record.id}") %></span>
+          <span class="text-sm text-slate-400">#<%= record.id %></span>
+        </li>
+      <% end %>
+    </ul>
+  <% else %>
+    <p class="px-6 py-12 text-center text-slate-500">No records yet. Seed the database or build the create workflow next.</p>
+  <% end %>
+</div>

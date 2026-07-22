@@ -1,0 +1,14 @@
+<% content_for :title, "Add student · SchoolOS" %>
+<%= render "shared/form_header", title: "Add student", back_path: students_path %>
+<%= form_with model: @student, class: "mx-auto max-w-3xl space-y-6 rounded-2xl border border-slate-200 bg-white p-8 shadow-sm" do |form| %>
+  <%= render "shared/form_errors", object: @student %>
+  <div class="grid gap-5 sm:grid-cols-2">
+    <%= render "shared/text_field", form:, field: :admission_number, label: "Admission number" %><%= render "shared/text_field", form:, field: :first_name %><%= render "shared/text_field", form:, field: :last_name %>
+    <div><%= form.label :date_of_birth, class: "field-label" %><%= form.date_field :date_of_birth, required: true, class: "form-input" %></div>
+    <div><%= form.label :gender, class: "field-label" %><%= form.select :gender, Student.genders.keys.map { |value| [value.humanize, value] }, {}, class: "form-input" %></div>
+    <div><%= form.label :admitted_on, class: "field-label" %><%= form.date_field :admitted_on, required: true, class: "form-input" %></div>
+    <div><%= form.label :classroom_id, "Class", class: "field-label" %><%= form.collection_select :classroom_id, @classrooms, :id, :name, { include_blank: "Enroll later" }, { class: "form-input" } %></div>
+  </div>
+  <div><%= form.label :medical_notes, class: "field-label" %><%= form.text_area :medical_notes, rows: 3, class: "form-input" %></div>
+  <%= form.submit "Save student", class: "primary-button" %>
+<% end %>

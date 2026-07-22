@@ -1,0 +1,60 @@
+<% if current_user.administrator? %>
+  <% role_label = "Admin"; role_colors = "bg-indigo-50 text-indigo-700" %>
+  <% navigation_groups = [
+    ["People", "👥", [["Students", students_path], ["Guardians", guardians_path], ["Teachers", teachers_path]]],
+    ["Academics", "📚", [["Classes", classrooms_path], ["Subjects", subjects_path], ["Teacher assignments", teaching_assignments_path], ["All lesson plans", lesson_notes_path], ["Enter results", new_exam_result_path], ["Assessment workflow", assessments_path], ["Teacher remarks", report_card_remark_templates_path]]],
+    ["Operations", "🏫", [["Attendance", attendance_register_path], ["Attendance analytics", attendance_analytics_path], ["Timetable", timetable_entries_path], ["Announcements", announcements_path], ["Fee structures", fee_structures_path], ["Billing", invoices_path], ["Financial report", financial_report_path]]],
+    ["Administration", "⚙️", [["School settings", school_setting_path], ["Assessment settings", assessment_settings_path], ["Promotions", new_promotion_path], ["Academic year rollover", new_academic_year_rollover_path], ["Audit log", audit_events_path]]]
+  ] %>
+<% elsif current_user.teacher? %>
+  <% role_label = "Teacher"; role_colors = "bg-emerald-50 text-emerald-700" %>
+  <% navigation_groups = [
+    ["My Students", "👥", [["Student list", students_path], ["My classes", classrooms_path]]],
+    ["Teaching", "📚", [["My subjects", subjects_path], ["Enter results", new_exam_result_path], ["Lesson plans", lesson_notes_path]]],
+    ["Assessment", "📝", [["Assessment workflow", assessments_path], ["Teacher remarks", report_card_remark_templates_path], ["Attendance analytics", attendance_analytics_path]]],
+    ["Schedule", "📅", [["Take attendance", attendance_register_path], ["My timetable", timetable_entries_path], ["School news", announcements_path]]]
+  ] %>
+<% elsif current_user.registrar? %>
+  <% role_label = "Registrar"; role_colors = "bg-sky-50 text-sky-700" %>
+  <% navigation_groups = [
+    ["People", "👥", [["Students", students_path], ["Guardians", guardians_path]]],
+    ["Academics", "📚", [["Classes", classrooms_path], ["Subjects", subjects_path], ["Results", new_exam_result_path]]],
+    ["Attendance", "✅", [["Register", attendance_register_path], ["Analytics", attendance_analytics_path]]],
+    ["School", "🏫", [["Timetable", timetable_entries_path], ["Announcements", announcements_path]]]
+  ] %>
+<% elsif current_user.accountant? %>
+  <% role_label = "Accounts"; role_colors = "bg-amber-50 text-amber-700" %>
+  <% navigation_groups = [
+    ["Students", "👥", [["Student directory", students_path]]],
+    ["Billing", "🧾", [["Fee structures", fee_structures_path], ["Invoices and payments", invoices_path], ["New invoice", new_invoice_path]]],
+    ["Reports", "📊", [["Financial report", financial_report_path]]],
+    ["School", "🏫", [["Announcements", announcements_path]]]
+  ] %>
+<% else %>
+  <% role_label = current_user.role.humanize; role_colors = "bg-violet-50 text-violet-700" %>
+  <% profile_links = current_user.student? && current_user.student ? [["My profile", student_path(current_user.student)], ["My assessments", assessments_student_path(current_user.student)]] : [["My children", students_path]] %>
+  <% navigation_groups = [
+    ["Profile", "👤", profile_links],
+    ["Academics", "📚", [["Assessments", (current_user.student? && current_user.student ? assessments_student_path(current_user.student) : students_path)]]],
+    ["Finance", "🧾", [["Billing", invoices_path]]],
+    ["School", "🏫", [["Announcements", announcements_path]]]
+  ] %>
+<% end %>
+
+<span class="mb-2 rounded-full px-3 py-1 text-center text-xs font-black uppercase tracking-wide lg:mb-0 <%= role_colors %>"><%= role_label %></span>
+
+<% navigation_groups.each do |label, icon, links| %>
+  <details class="group relative border-b border-slate-100 last:border-0 lg:border-0">
+    <summary class="flex cursor-pointer list-none items-center justify-between gap-2 rounded-xl px-3 py-3 transition hover:bg-indigo-50 hover:text-indigo-700 lg:py-2">
+      <span class="flex items-center gap-2"><span><%= icon %></span><span><%= label %></span></span><svg class="h-4 w-4 transition group-open:rotate-180" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" /></svg>
+    </summary>
+    <div class="space-y-1 pb-3 pl-8 pr-2 lg:absolute lg:right-0 lg:top-[calc(100%+0.5rem)] lg:z-50 lg:min-w-64 lg:rounded-2xl lg:border lg:border-slate-200 lg:bg-white lg:p-2 lg:shadow-xl">
+      <% links.each do |link_label, path| %><%= link_to path, class: "flex items-center justify-between rounded-xl px-4 py-3 text-sm font-semibold text-slate-600 transition hover:bg-gradient-to-r hover:from-indigo-50 hover:to-violet-50 hover:text-indigo-700" do %><span><%= link_label %></span><span class="text-slate-300">→</span><% end %><% end %>
+    </div>
+  </details>
+<% end %>
+
+<details class="group relative mt-2 border-t border-slate-200 pt-3 lg:mt-0 lg:border-l lg:border-t-0 lg:pl-4 lg:pt-0">
+  <summary class="flex cursor-pointer list-none items-center gap-3 rounded-2xl px-3 py-2 transition hover:bg-slate-100"><span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-600 to-violet-600 text-xs font-black text-white shadow-sm"><%= current_user.first_name.first %><%= current_user.last_name.first %></span><span class="min-w-0 flex-1 lg:hidden xl:block"><strong class="block truncate text-sm text-slate-800"><%= current_user.full_name %></strong><small class="block text-xs font-medium text-slate-400"><%= current_user.role.humanize %></small></span><svg class="h-4 w-4 shrink-0 text-slate-400 transition group-open:rotate-180" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd" /></svg></summary>
+  <div class="mt-2 space-y-1 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl lg:absolute lg:right-0 lg:top-[calc(100%+0.5rem)] lg:z-50 lg:mt-0 lg:min-w-56"><%= link_to edit_profile_path, class: "flex items-center gap-3 rounded-xl px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-indigo-50 hover:text-indigo-700" do %><span class="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-100">✏️</span><span>Edit profile</span><% end %><div class="border-t border-slate-100 pt-1"><%= button_to session_path, method: :delete, class: "flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-semibold text-slate-700 transition hover:bg-red-50 hover:text-red-700" do %><span class="flex h-8 w-8 items-center justify-center rounded-lg bg-red-100">↪</span><span>Sign out</span><% end %></div></div>
+</details>

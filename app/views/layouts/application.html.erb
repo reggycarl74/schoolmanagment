@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title><%= content_for(:title) || "School Management System" %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+
+    <%= yield :head %>
+
+    <%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>
+    <%#= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
+
+    <link rel="icon" href="/icon.png" type="image/png">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.png">
+
+    <%# Includes all stylesheet files in app/assets/stylesheets %>
+    <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
+    <%= javascript_importmap_tags %>
+  </head>
+
+  <body class="min-h-screen bg-slate-50 text-slate-800 antialiased">
+    <% if authenticated? %>
+    <header class="sticky top-0 z-50 border-b border-white/60 bg-white/90 shadow-sm backdrop-blur-xl" data-controller="mobile-menu">
+      <nav class="relative mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
+        <%= link_to root_path, class: "flex items-center gap-3" do %><span class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-600 text-lg font-black text-white shadow-lg shadow-indigo-200"><% if current_school.logo.attached? %><%= image_tag current_school.logo, class: "h-full w-full object-contain bg-white p-1", alt: "" %><% else %>S<% end %></span><span><strong class="block text-lg leading-none text-slate-900">SchoolOS</strong><small class="mt-1 block max-w-40 truncate text-xs text-slate-500"><%= current_school.name %></small></span><% end %>
+        <div class="ml-auto mr-3 hidden xl:block"><%= render "shared/global_search" %></div><button type="button" class="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-50 text-2xl font-bold text-indigo-700 lg:hidden" data-action="mobile-menu#toggle" aria-label="Open navigation"><span data-mobile-menu-target="icon">☰</span></button>
+        <div class="absolute left-4 right-4 top-[calc(100%+0.5rem)] hidden max-h-[calc(100vh-6rem)] flex-col items-stretch gap-1 overflow-y-auto rounded-3xl border border-slate-200 bg-white p-3 text-sm font-semibold text-slate-700 shadow-2xl lg:static lg:flex lg:max-h-none lg:flex-row lg:flex-wrap lg:items-center lg:justify-end lg:gap-x-1 lg:gap-y-1 lg:overflow-visible lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none" data-mobile-menu-target="panel" data-action="click->mobile-menu#close">
+          <div class="mb-2 lg:hidden"><%= render "shared/global_search" %></div><%= render "shared/navigation" %>
+        </div>
+      </nav>
+    </header>
+    <% end %>
+    <main class="relative mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-9">
+      <% flash.each do |type, message| %>
+        <div class="mb-6 flex items-center gap-3 rounded-2xl border px-5 py-4 text-sm font-semibold shadow-sm <%= type.to_s == "alert" ? "border-red-200 bg-red-50 text-red-800" : "border-emerald-200 bg-emerald-50 text-emerald-800" %>"><span class="text-lg"><%= type.to_s == "alert" ? "⚠" : "✓" %></span><%= message %></div>
+      <% end %>
+      <%= yield %>
+    </main>
+    <% if authenticated? %><footer class="mx-auto max-w-7xl px-4 pb-8 text-center text-xs text-slate-400 sm:px-6">SchoolOS · <%= current_school.name %> · <%= Date.current.year %></footer><% end %>
+  </body>
+</html>

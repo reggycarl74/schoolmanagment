@@ -1,0 +1,13 @@
+assigned:
+  school: demo
+  academic_year: current
+  grade_level: grade_four
+  name: Grade 4A
+  capacity: 30
+
+unassigned:
+  school: demo
+  academic_year: current
+  grade_level: grade_four
+  name: Grade 4B
+  capacity: 30

@@ -1,0 +1,7 @@
+one:
+  school: demo
+  user: teacher_user
+  employee_number: T001
+  first_name: Test
+  last_name: Teacher
+  active: true

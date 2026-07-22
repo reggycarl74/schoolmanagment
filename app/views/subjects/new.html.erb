@@ -1,0 +1,5 @@
+<% content_for :title, "Add subject · SchoolOS" %>
+<%= render "shared/form_header", title: "Add subject", back_path: subjects_path %>
+<%= form_with model: @subject, class: "mx-auto max-w-xl space-y-6 rounded-2xl border border-slate-200 bg-white p-8 shadow-sm" do |form| %>
+  <%= render "shared/form_errors", object: @subject %><%= render "shared/text_field", form:, field: :name %><%= render "shared/text_field", form:, field: :code %><%= form.submit "Save subject", class: "primary-button" %>
+<% end %>

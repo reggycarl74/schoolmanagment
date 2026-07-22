@@ -1,0 +1,39 @@
+services:
+  - type: web
+    name: school-management-system
+    runtime: docker
+    plan: free
+    healthCheckPath: /up
+    envVars:
+      - key: RAILS_ENV
+        value: production
+      - key: RAILS_LOG_TO_STDOUT
+        value: "true"
+      - key: RAILS_SERVE_STATIC_FILES
+        value: "true"
+      - key: WEB_CONCURRENCY
+        value: "1"
+      - key: RAILS_MAX_THREADS
+        value: "5"
+      - key: SOLID_QUEUE_IN_PUMA
+        value: "true"
+      - key: SEED_DEMO_DATA
+        value: "true"
+      - key: DB_SSL_MODE
+        value: required
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        value: "4000"
+      - key: DB_NAME
+        sync: false
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: RAILS_MASTER_KEY
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false
+      - key: APP_HOST
+        sync: false

@@ -1,0 +1,11 @@
+visible:
+  student: visible
+  classroom: assigned
+  enrolled_on: 2026-08-01
+  status: 0
+
+hidden:
+  student: hidden
+  classroom: unassigned
+  enrolled_on: 2026-08-01
+  status: 0

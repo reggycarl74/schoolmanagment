@@ -1,0 +1,7 @@
+<% if object.errors.any? %>
+  <div class="rounded-xl bg-red-50 p-4 text-sm text-red-800">
+    <p class="font-semibold">Please correct the following:</p>
+    <ul class="mt-2 list-disc pl-5"><% object.errors.full_messages.each do |message| %><li><%= message %></li><% end %></ul>
+  </div>
+<% end %>
+<% if local_assigns[:form_error].present? %><div class="rounded-xl bg-red-50 p-4 text-sm text-red-800"><%= form_error %></div><% end %>

@@ -1,0 +1,3 @@
+<% content_for :title, "Subjects · SchoolOS" %>
+<%= render "shared/section_header", title: "Subjects", subtitle: "Subjects taught by the school", button_text: "Add subject", button_path: (new_subject_path if current_user.administrator?) %>
+<%= render "shared/record_list", records: @records %>

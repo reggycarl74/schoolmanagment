@@ -1,0 +1,36 @@
+<% content_for :title, "Dashboard · SchoolOS" %>
+
+<section class="rounded-3xl bg-gradient-to-r from-indigo-700 to-violet-600 px-8 py-10 text-white shadow-lg">
+  <p class="text-sm font-semibold uppercase tracking-widest text-indigo-100"><%= current_user.teacher? ? "Teacher workspace" : "School management" %></p>
+  <h1 class="mt-3 text-4xl font-bold"><%= current_user.teacher? ? "Welcome back, #{current_user.first_name}." : "One calm place to run your school." %></h1>
+  <p class="mt-3 max-w-2xl text-indigo-100"><%= current_user.teacher? ? "Your dashboard contains only your assigned classes, students, lessons, attendance, and assessments." : "Manage admissions, classrooms, attendance, teaching assignments, assessments, and results from one Rails monolith." %></p>
+</section>
+
+<section class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+  <% palettes = ["from-sky-500 to-blue-600", "from-emerald-500 to-teal-600", "from-amber-500 to-orange-600", "from-fuchsia-500 to-violet-600"] %>
+  <% icons = ["🎓", "👩‍🏫", "🏫", "📚"] %>
+  <% @statistics.each_with_index do |(name, value), index| %>
+    <article class="relative overflow-hidden rounded-3xl bg-gradient-to-br <%= palettes[index] %> p-6 text-white shadow-lg">
+      <div class="absolute -right-4 -top-5 h-24 w-24 rounded-full bg-white/10"></div><div class="text-2xl"><%= icons[index] %></div>
+      <p class="mt-5 text-sm font-semibold capitalize text-white/80"><%= name %></p>
+      <p class="mt-1 text-4xl font-black"><%= value %></p>
+    </article>
+  <% end %>
+</section>
+
+<% unless current_user.teacher? %><section class="mt-10 grid gap-6 lg:grid-cols-3">
+  <article class="rounded-2xl border border-slate-200 bg-white p-6 lg:col-span-2">
+    <h2 class="text-lg font-bold text-slate-900">Start with the academic structure</h2>
+    <ol class="mt-5 grid gap-4 sm:grid-cols-2">
+      <li class="rounded-xl bg-slate-50 p-4"><strong>1. Academic year</strong><p class="mt-1 text-sm text-slate-600">Create the year and its terms.</p></li>
+      <li class="rounded-xl bg-slate-50 p-4"><strong>2. Classes</strong><p class="mt-1 text-sm text-slate-600">Add grade levels and homerooms.</p></li>
+      <li class="rounded-xl bg-slate-50 p-4"><strong>3. People</strong><p class="mt-1 text-sm text-slate-600">Register teachers, students, and guardians.</p></li>
+      <li class="rounded-xl bg-slate-50 p-4"><strong>4. Courses</strong><p class="mt-1 text-sm text-slate-600">Assign subjects and teachers per term.</p></li>
+    </ol>
+  </article>
+  <aside class="rounded-2xl bg-slate-900 p-6 text-white">
+    <h2 class="text-lg font-bold">Built as a monolith</h2>
+    <p class="mt-3 text-sm leading-6 text-slate-300">Rails owns the database, business rules, HTML, background jobs, and real-time updates. Hotwire adds interactivity without a separate frontend application.</p>
+  </aside>
+</section>
+<% end %>

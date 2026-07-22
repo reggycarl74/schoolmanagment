@@ -1,0 +1,49 @@
+<% content_for :title, "Enter exam results · SchoolOS" %>
+
+<div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+  <div>
+    <p class="text-sm font-semibold uppercase tracking-wider text-indigo-600">Assessment book</p>
+    <h1 class="mt-1 text-3xl font-bold text-slate-900">Enter exam results</h1>
+    <p class="mt-2 text-sm text-slate-500">Choose a class, subject, and term to load the student mark sheet.</p>
+  </div>
+</div>
+
+<%= form_with url: new_exam_result_path, method: :get, class: "mt-8 grid gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:grid-cols-4 md:items-end" do |form| %>
+  <div><%= form.label :classroom_id, "Class", class: "field-label" %><%= form.collection_select :classroom_id, @classrooms, :id, :name, { prompt: "Select class", selected: params[:classroom_id] }, { required: true, class: "form-input" } %></div>
+  <div><%= form.label :subject_id, "Subject", class: "field-label" %><%= form.collection_select :subject_id, @subjects, :id, :name, { prompt: "Select subject", selected: params[:subject_id] }, { required: true, class: "form-input" } %></div>
+  <div><%= form.label :term_id, "Term", class: "field-label" %><%= form.collection_select :term_id, @terms, :id, :name, { prompt: "Select term", selected: params[:term_id] }, { required: true, class: "form-input" } %></div>
+  <%= form.submit "Load mark sheet", class: "primary-button h-[50px]" %>
+<% end %>
+
+<% if @form_error.present? %><div class="mt-6 rounded-xl bg-red-50 p-4 text-sm text-red-800"><%= @form_error %></div><% end %>
+
+<% if @course.present? %>
+  <div class="mt-8 flex flex-wrap items-center gap-x-8 gap-y-2 rounded-t-2xl bg-slate-900 px-6 py-5 text-white">
+    <p><span class="text-slate-400">Class:</span> <strong><%= @classroom.name %></strong></p>
+    <p><span class="text-slate-400">Subject:</span> <strong><%= @subject.name %></strong></p>
+    <p><span class="text-slate-400">Term:</span> <strong class="text-amber-300"><%= @term.name %></strong></p>
+  </div>
+
+  <%= form_with url: exam_results_path(classroom_id: @classroom.id, subject_id: @subject.id, term_id: @term.id), method: :post do %>
+    <div class="overflow-x-auto border-x border-b border-slate-300 bg-blue-50 shadow-sm">
+      <table class="min-w-[1000px] w-full border-collapse text-left" data-controller="score-grid">
+        <thead><tr class="bg-blue-100 text-sm font-semibold text-slate-800"><th class="sticky left-0 z-10 min-w-64 border border-slate-400 bg-blue-100 px-4 py-4">Name of student</th><% @components.each_value do |definition| %><th class="min-w-44 border border-slate-400 px-4 py-4"><%= definition[:title] %> (<%= definition[:maximum_points] %>)</th><% end %><th class="min-w-28 border border-slate-400 px-4 py-4">Total (<%= @components.values.sum { |item| item[:maximum_points] } %>)</th></tr></thead>
+        <tbody>
+          <% @enrollments.each do |enrollment| %>
+            <tr class="odd:bg-white/50" data-score-grid-target="row">
+              <th class="sticky left-0 z-10 border border-slate-400 bg-inherit px-4 py-3 font-semibold text-slate-800"><%= enrollment.student.full_name %></th>
+              <% @components.each do |key, definition| %>
+                <% assessment_id = @assessment_ids[definition[:title]] %>
+                <% value = assessment_id && @saved_scores[[enrollment.id, assessment_id]] %>
+                <td class="border border-slate-400 p-2"><%= number_field_tag "scores[#{enrollment.id}][#{key}]", value, min: 0, max: definition[:maximum_points], step: 0.01, class: "w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-right focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200", aria: { label: "#{enrollment.student.full_name} #{definition[:title]}" }, data: { score_grid_target: "score", action: "input->score-grid#update" } %></td>
+              <% end %>
+              <td class="border border-slate-400 px-4 py-3 text-center font-bold text-indigo-700" data-score-grid-target="total">0</td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+      <% if @enrollments.empty? %><p class="p-10 text-center text-slate-600">This class has no enrolled students yet.</p><% end %>
+    </div>
+    <% if @enrollments.any? %><div class="flex justify-end rounded-b-2xl border border-t-0 border-slate-200 bg-white p-5"><%= submit_tag "Save all results", class: "primary-button" %></div><% end %>
+  <% end %>
+<% end %>

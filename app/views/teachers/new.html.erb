@@ -1,0 +1,8 @@
+<% content_for :title, "Add teacher · SchoolOS" %>
+<%= render "shared/form_header", title: "Add teacher", back_path: teachers_path %>
+<%= form_with model: @teacher, class: "mx-auto max-w-3xl space-y-6 rounded-2xl border border-slate-200 bg-white p-8 shadow-sm" do |form| %>
+  <%= render "shared/form_errors", object: @teacher %><div class="grid gap-5 sm:grid-cols-2">
+    <%= render "shared/text_field", form:, field: :employee_number %><%= render "shared/text_field", form:, field: :first_name %><%= render "shared/text_field", form:, field: :last_name %><%= render "shared/text_field", form:, field: :email, type: :email %><%= render "shared/text_field", form:, field: :phone, type: :tel %>
+    <div><%= form.label :hired_on, class: "field-label" %><%= form.date_field :hired_on, class: "form-input" %></div>
+  </div><%= form.submit "Save teacher", class: "primary-button" %>
+<% end %>

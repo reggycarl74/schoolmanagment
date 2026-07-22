@@ -1,0 +1,35 @@
+<% content_for :title, "Teacher remarks · SchoolOS" %>
+
+<section class="overflow-hidden rounded-3xl bg-gradient-to-br from-indigo-700 via-violet-700 to-fuchsia-700 px-6 py-8 text-white shadow-xl sm:px-10">
+  <div class="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
+    <div><p class="text-xs font-bold uppercase tracking-[0.22em] text-indigo-200">Report cards</p><h1 class="mt-2 text-3xl font-bold sm:text-4xl">Teacher remark library</h1><p class="mt-3 max-w-2xl text-sm leading-6 text-indigo-100">Save thoughtful comments once, reuse them on report cards, and personalize the wording for every student.</p></div>
+    <div class="flex gap-3"><div class="rounded-2xl bg-white/10 px-5 py-3 text-center backdrop-blur"><p class="text-2xl font-bold"><%= @templates.count %></p><p class="text-xs text-indigo-100">Total remarks</p></div><div class="rounded-2xl bg-white/10 px-5 py-3 text-center backdrop-blur"><p class="text-2xl font-bold"><%= @templates.count(&:active?) %></p><p class="text-xs text-indigo-100">Available</p></div></div>
+  </div>
+</section>
+
+<div class="mt-8 grid items-start gap-8 xl:grid-cols-[380px_1fr]">
+  <section class="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm xl:sticky xl:top-6">
+    <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-100 text-xl">✍️</div><h2 class="mt-4 text-xl font-bold text-slate-900">Create a reusable remark</h2><p class="mt-1 text-sm leading-6 text-slate-500">Use a clear title so teachers can find it quickly while completing reports.</p>
+    <%= form_with model: @template, class: "mt-6 space-y-5" do |form| %>
+      <div><%= form.label :title, "Short name", class: "field-label" %><%= form.text_field :title, required: true, placeholder: "Excellent progress", class: "form-input" %></div>
+      <div><%= form.label :kind, "Remark category", class: "field-label" %><%= form.select :kind, @kinds.map { |kind| [kind.humanize, kind] }, {}, class: "form-input" %></div>
+      <div><%= form.label :body, "Remark text", class: "field-label" %><%= form.text_area :body, required: true, rows: 6, placeholder: "Has made excellent progress this term...", class: "form-input resize-y" %><p class="mt-2 text-xs leading-5 text-slate-500">Write a useful starting point. It can still be edited for each student.</p></div>
+      <label class="flex cursor-pointer items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-4"><%= form.check_box :active, class: "mt-0.5 h-4 w-4 rounded border-slate-300 text-indigo-600" %><span><strong class="block text-sm text-slate-900">Available on report cards</strong><span class="mt-1 block text-xs text-slate-500">Teachers can select this remark immediately.</span></span></label>
+      <%= form.submit "Add to remark library", class: "primary-button w-full" %>
+    <% end %>
+  </section>
+
+  <section>
+    <div class="mb-4 flex items-center justify-between"><div><h2 class="text-xl font-bold text-slate-900">Saved remarks</h2><p class="mt-1 text-sm text-slate-500">Choose Edit to improve a remark or change its availability.</p></div></div>
+    <div class="grid gap-4 lg:grid-cols-2">
+      <% @templates.each do |template| %>
+        <article class="group flex min-h-64 flex-col rounded-3xl border border-slate-200 bg-white p-6 shadow-sm transition hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-md">
+          <div class="flex items-start justify-between gap-4"><span class="rounded-full px-3 py-1 text-xs font-bold <%= template.subject_teacher? ? 'bg-sky-100 text-sky-700' : template.homeroom_teacher? ? 'bg-emerald-100 text-emerald-700' : 'bg-violet-100 text-violet-700' %>"><%= template.kind.humanize %></span><span class="flex items-center gap-1.5 text-xs font-semibold <%= template.active? ? 'text-emerald-700' : 'text-slate-400' %>"><span class="h-2 w-2 rounded-full <%= template.active? ? 'bg-emerald-500' : 'bg-slate-300' %>"></span><%= template.active? ? "Available" : "Hidden" %></span></div>
+          <h3 class="mt-5 text-lg font-bold text-slate-900"><%= template.title %></h3><p class="mt-3 flex-1 text-sm leading-6 text-slate-600"><%= template.body %></p>
+          <div class="mt-6 flex items-center justify-between border-t border-slate-100 pt-4"><div class="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-xs font-bold text-slate-600"><%= template.author.first_name.first %><%= template.author.last_name.first %></div><% if current_user.administrator? || template.author == current_user %><%= link_to "Edit remark →", edit_report_card_remark_template_path(template), class: "text-sm font-bold text-indigo-700 transition group-hover:text-indigo-900" %><% else %><span class="text-xs text-slate-400">Shared by <%= template.author.full_name %></span><% end %></div>
+        </article>
+      <% end %>
+    </div>
+    <% if @templates.empty? %><div class="rounded-3xl border-2 border-dashed border-slate-300 bg-white px-6 py-16 text-center"><div class="text-4xl">💬</div><h3 class="mt-4 text-lg font-bold">Your remark library is empty</h3><p class="mt-2 text-sm text-slate-500">Create the first reusable teacher remark using the form.</p></div><% end %>
+  </section>
+</div>

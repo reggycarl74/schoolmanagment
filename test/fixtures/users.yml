@@ -1,0 +1,17 @@
+admin:
+  school: demo
+  first_name: Demo
+  last_name: Administrator
+  email: admin@example.test
+  password_digest: <%= BCrypt::Password.create("Password123!") %>
+  role: 0
+  active: true
+
+teacher_user:
+  school: demo
+  first_name: Test
+  last_name: Teacher
+  email: teacher@example.test
+  password_digest: <%= BCrypt::Password.create("Password123!") %>
+  role: 1
+  active: true

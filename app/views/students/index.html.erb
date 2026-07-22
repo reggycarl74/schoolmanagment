@@ -1,0 +1,8 @@
+<% content_for :title, "Students · SchoolOS" %>
+<%= render "shared/section_header", title: "Students", subtitle: "Admissions and student records", button_text: "Add student", button_path: (new_student_path if current_user.administrator?) %>
+<div class="mt-8 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+  <% if @records.any? %><ul class="divide-y divide-slate-100"><% @records.each do |student| %>
+    <li class="flex flex-col gap-3 px-6 py-4 sm:flex-row sm:items-center sm:justify-between"><div><p class="font-semibold text-slate-900"><%= student.full_name %></p><p class="text-sm text-slate-500"><%= student.admission_number %></p></div><div class="flex gap-4"><%= link_to "Profile", student_path(student), class: "text-sm font-semibold text-indigo-700" %><%= link_to "Assessments", assessments_student_path(student), class: "text-sm font-semibold text-indigo-700" %></div></li>
+  <% end %></ul><% else %><p class="p-10 text-center text-slate-500">No students yet.</p><% end %>
+</div>
+<% if current_user.administrator? %><div class="mt-6 flex flex-wrap items-end justify-between gap-4"><%= link_to "Export CSV", students_path(format: :csv), class: "text-sm font-semibold text-indigo-700" %><%= form_with url: import_students_path, multipart: true, class: "flex items-end gap-2" do |f| %><div><%= f.label :file, "Import student CSV", class: "field-label" %><%= f.file_field :file, accept: ".csv", required: true, class: "form-input" %></div><%= f.submit "Import", class: "primary-button" %><% end %></div><% end %>

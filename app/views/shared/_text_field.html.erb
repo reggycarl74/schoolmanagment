@@ -1,0 +1,1 @@
+<div><%= form.label field, (local_assigns[:label] || field.to_s.humanize), class: "field-label" %><%= form.public_send("#{local_assigns[:type] || :text}_field", field, required: !%i[email phone].include?(field), class: "form-input") %></div>
