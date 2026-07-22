@@ -7,6 +7,10 @@ default: &default
   port: <%= ENV.fetch("DB_PORT", 3306) %>
   username: <%= ENV.fetch("DB_USERNAME", "root") %>
   password: <%= ENV.fetch("DB_PASSWORD", "") %>
+  # TiDB Cloud Serverless rejects unencrypted connections outright, so this
+  # must stay "required" (or stricter) in production even though it's a
+  # no-op for local MySQL.
+  ssl_mode: <%= ENV.fetch("DB_SSL_MODE", Rails.env.production? ? "required" : "disabled") %>
   # Without this, an unreachable TiDB host (e.g. blocked by an IP allow list)
   # hangs the connection indefinitely instead of failing, which on Render
   # looks like a stuck deploy with no open port rather than a clear error.
