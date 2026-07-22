@@ -16,9 +16,15 @@ services:
       - key: RAILS_MAX_THREADS
         value: "5"
       - key: SOLID_QUEUE_IN_PUMA
-        value: "true"
+        value: "false"
       - key: SEED_DEMO_DATA
-        value: "true"
+        value: "false"
+      - key: PORT
+        value: "10000"
+      - key: DB_ADVISORY_LOCKS
+        value: "false"
+      - key: DB_PREPARE_TIMEOUT
+        value: "240"
       - key: DB_SSL_MODE
         value: required
       - key: DB_HOST

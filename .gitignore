@@ -4,6 +4,7 @@
 /tmp/*
 /storage/*
 /.env*
+**/.env*
 /config/master.key
 /config/credentials/*.key
 !/log/.keep

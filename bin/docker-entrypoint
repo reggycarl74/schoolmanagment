@@ -6,12 +6,25 @@ if [ -z "${LD_PRELOAD+x}" ]; then
     export LD_PRELOAD
 fi
 
-# If running the rails server then create or migrate existing database
+# Render needs the HTTP port to open promptly. Prepare the remote database in a
+# bounded background task so a slow TiDB migration cannot block Puma startup.
 if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
-  ./bin/rails db:prepare
-  if [ "${SEED_DEMO_DATA:-false}" = "true" ]; then
-    ./bin/rails db:seed
-  fi
+  (
+    echo "==> Preparing database in the background..."
+    if timeout "${DB_PREPARE_TIMEOUT:-240}" ./bin/rails db:prepare; then
+      echo "==> Database preparation completed."
+      if [ "${SEED_DEMO_DATA:-false}" = "true" ]; then
+        echo "==> Seeding demo data..."
+        if timeout "${DB_SEED_TIMEOUT:-240}" ./bin/rails db:seed; then
+          echo "==> Demo data seeding completed."
+        else
+          echo "==> Demo data seeding failed or timed out; web service remains available."
+        fi
+      fi
+    else
+      echo "==> Database preparation failed or timed out; check the database logs."
+    fi
+  ) &
 fi
 
 exec "${@}"

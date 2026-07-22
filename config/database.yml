@@ -6,12 +6,11 @@ default: &default
   host: <%= ENV.fetch("DB_HOST", "127.0.0.1") %>
   port: <%= ENV.fetch("DB_PORT", 3306) %>
   username: <%= ENV.fetch("DB_USERNAME", "root") %>
-  password: <%= ENV["DB_PASSWORD"] %>
-  ssl_mode: <%= ENV.fetch("DB_SSL_MODE", Rails.env.production? ? "required" : "disabled") %>
-  # TiDB Cloud does not reliably support the MySQL named locks Rails uses
-  # while running migrations. Render deploys one web instance, so disable
-  # advisory migration locks in production to prevent startup from hanging.
-  advisory_locks: <%= ENV.fetch("DB_ADVISORY_LOCKS", Rails.env.production? ? "false" : "true") == "true" %>
+  password: <%= ENV.fetch("DB_PASSWORD", "") %>
+  # Without this, an unreachable TiDB host (e.g. blocked by an IP allow list)
+  # hangs the connection indefinitely instead of failing, which on Render
+  # looks like a stuck deploy with no open port rather than a clear error.
+  connect_timeout: <%= ENV.fetch("DB_CONNECT_TIMEOUT", 10) %>
 
 development:
   <<: *default
@@ -27,13 +26,13 @@ production:
     database: <%= ENV.fetch("DB_NAME", "school_management_system_production") %>
   cache:
     <<: *primary_production
-    database: <%= ENV.fetch("DB_CACHE_NAME", ENV.fetch("DB_NAME", "school_management_system_production")) %>
+    database: <%= ENV.fetch("DB_CACHE_NAME", "school_management_system_production_cache") %>
     migrations_paths: db/cache_migrate
   queue:
     <<: *primary_production
-    database: <%= ENV.fetch("DB_QUEUE_NAME", ENV.fetch("DB_NAME", "school_management_system_production")) %>
+    database: <%= ENV.fetch("DB_QUEUE_NAME", "school_management_system_production_queue") %>
     migrations_paths: db/queue_migrate
   cable:
     <<: *primary_production
-    database: <%= ENV.fetch("DB_CABLE_NAME", ENV.fetch("DB_NAME", "school_management_system_production")) %>
+    database: <%= ENV.fetch("DB_CABLE_NAME", "school_management_system_production_cable") %>
     migrations_paths: db/cable_migrate
