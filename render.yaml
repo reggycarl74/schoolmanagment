@@ -18,7 +18,7 @@ services:
       - key: SOLID_QUEUE_IN_PUMA
         value: "false"
       - key: SEED_DEMO_DATA
-        value: "false"
+        value: "true"
       - key: PORT
         value: "10000"
       - key: DB_ADVISORY_LOCKS
