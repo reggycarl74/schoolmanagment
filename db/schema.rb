@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_07_22_050000) do
+ActiveRecord::Schema[8.0].define(version: 2026_07_22_190000) do
   create_table "academic_years", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.bigint "school_id", null: false
     t.string "name", null: false
@@ -119,6 +119,20 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_22_050000) do
     t.index ["user_id"], name: "index_audit_events_on_user_id"
   end
 
+  create_table "billing_adjustments", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
+    t.bigint "invoice_id", null: false
+    t.integer "kind", null: false
+    t.decimal "amount", precision: 12, scale: 2, null: false
+    t.string "reason", null: false
+    t.bigint "created_by_id", null: false
+    t.bigint "approved_by_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["approved_by_id"], name: "index_billing_adjustments_on_approved_by_id"
+    t.index ["created_by_id"], name: "index_billing_adjustments_on_created_by_id"
+    t.index ["invoice_id"], name: "index_billing_adjustments_on_invoice_id"
+  end
+
   create_table "classrooms", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.bigint "school_id", null: false
     t.bigint "academic_year_id", null: false
@@ -223,6 +237,17 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_22_050000) do
     t.index ["school_id"], name: "index_guardians_on_school_id"
   end
 
+  create_table "invoice_line_items", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
+    t.bigint "invoice_id", null: false
+    t.string "description", null: false
+    t.integer "category", default: 0, null: false
+    t.decimal "quantity", precision: 10, scale: 2, default: "1.0", null: false
+    t.decimal "unit_amount", precision: 12, scale: 2, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["invoice_id"], name: "index_invoice_line_items_on_invoice_id"
+  end
+
   create_table "invoices", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.bigint "student_id", null: false
     t.bigint "fee_structure_id", null: false
@@ -233,7 +258,14 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_22_050000) do
     t.datetime "updated_at", null: false
     t.decimal "discount", precision: 12, scale: 2, default: "0.0", null: false
     t.string "discount_reason"
+    t.string "number", null: false
+    t.date "issued_on", null: false
+    t.text "notes"
+    t.datetime "cancelled_at"
+    t.bigint "cancelled_by_id"
+    t.index ["cancelled_by_id"], name: "index_invoices_on_cancelled_by_id"
     t.index ["fee_structure_id"], name: "index_invoices_on_fee_structure_id"
+    t.index ["number"], name: "index_invoices_on_number", unique: true
     t.index ["student_id", "fee_structure_id"], name: "index_invoices_on_student_id_and_fee_structure_id", unique: true
     t.index ["student_id"], name: "index_invoices_on_student_id"
   end
@@ -286,6 +318,18 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_22_050000) do
     t.index ["school_id"], name: "index_notification_deliveries_on_school_id"
   end
 
+  create_table "payment_installments", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
+    t.bigint "invoice_id", null: false
+    t.string "name", null: false
+    t.decimal "amount", precision: 12, scale: 2, null: false
+    t.date "due_on", null: false
+    t.integer "status", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["invoice_id", "due_on"], name: "index_payment_installments_on_invoice_id_and_due_on"
+    t.index ["invoice_id"], name: "index_payment_installments_on_invoice_id"
+  end
+
   create_table "payments", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.bigint "invoice_id", null: false
     t.decimal "amount", precision: 12, scale: 2, null: false
@@ -294,8 +338,16 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_22_050000) do
     t.integer "payment_method", default: 0, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "receipt_number", null: false
+    t.bigint "recorded_by_id"
+    t.datetime "reversed_at"
+    t.bigint "reversed_by_id"
+    t.text "reversal_reason"
     t.index ["invoice_id"], name: "index_payments_on_invoice_id"
+    t.index ["receipt_number"], name: "index_payments_on_receipt_number", unique: true
+    t.index ["recorded_by_id"], name: "index_payments_on_recorded_by_id"
     t.index ["reference"], name: "index_payments_on_reference", unique: true
+    t.index ["reversed_by_id"], name: "index_payments_on_reversed_by_id"
   end
 
   create_table "report_card_comments", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
@@ -336,6 +388,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_22_050000) do
     t.text "address"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "currency_code", default: "USD", null: false
     t.index ["code"], name: "index_schools_on_code", unique: true
   end
 
@@ -364,6 +417,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_22_050000) do
     t.text "medical_notes"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.decimal "billing_opening_balance", precision: 12, scale: 2, default: "0.0", null: false
     t.index ["school_id", "admission_number"], name: "index_students_on_school_id_and_admission_number", unique: true
     t.index ["school_id", "last_name", "first_name"], name: "index_students_on_school_id_and_last_name_and_first_name"
     t.index ["school_id"], name: "index_students_on_school_id"
@@ -465,6 +519,9 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_22_050000) do
   add_foreign_key "attendance_records", "users", column: "recorded_by_id"
   add_foreign_key "audit_events", "schools"
   add_foreign_key "audit_events", "users"
+  add_foreign_key "billing_adjustments", "invoices"
+  add_foreign_key "billing_adjustments", "users", column: "approved_by_id"
+  add_foreign_key "billing_adjustments", "users", column: "created_by_id"
   add_foreign_key "classrooms", "academic_years"
   add_foreign_key "classrooms", "grade_levels"
   add_foreign_key "classrooms", "schools"
@@ -482,13 +539,18 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_22_050000) do
   add_foreign_key "grades", "users", column: "graded_by_id"
   add_foreign_key "grading_scales", "schools"
   add_foreign_key "guardians", "schools"
+  add_foreign_key "invoice_line_items", "invoices"
   add_foreign_key "invoices", "fee_structures"
   add_foreign_key "invoices", "students"
+  add_foreign_key "invoices", "users", column: "cancelled_by_id"
   add_foreign_key "lesson_notes", "course_sections"
   add_foreign_key "lesson_notes", "teachers"
   add_foreign_key "login_activities", "users"
   add_foreign_key "notification_deliveries", "schools"
+  add_foreign_key "payment_installments", "invoices"
   add_foreign_key "payments", "invoices"
+  add_foreign_key "payments", "users", column: "recorded_by_id"
+  add_foreign_key "payments", "users", column: "reversed_by_id"
   add_foreign_key "report_card_comments", "students"
   add_foreign_key "report_card_comments", "terms"
   add_foreign_key "report_card_comments", "users", column: "author_id"

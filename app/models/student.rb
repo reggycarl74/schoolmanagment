@@ -16,4 +16,5 @@ class Student < ApplicationRecord
   validates :admission_number, uniqueness: { scope: :school_id }
 
   def full_name = "#{first_name} #{last_name}"
+  def billing_balance = billing_opening_balance + invoices.where.not(status: :cancelled).to_a.sum(&:balance)
 end

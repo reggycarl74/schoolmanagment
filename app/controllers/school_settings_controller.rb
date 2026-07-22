@@ -24,6 +24,6 @@ class SchoolSettingsController < ApplicationController
   private
 
   def school_params
-    params.expect(school: %i[name email phone address])
+    params.expect(school: %i[name email phone address currency_code])
   end
 end

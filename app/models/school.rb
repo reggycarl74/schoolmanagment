@@ -17,6 +17,7 @@ class School < ApplicationRecord
 
   validates :name, :code, :time_zone, presence: true
   validates :code, uniqueness: true
+  validates :currency_code, inclusion: { in: %w[USD EUR GBP GHS NGN ZAR KES] }
   validate :acceptable_logo
 
   private

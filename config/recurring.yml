@@ -1,0 +1,4 @@
+production:
+  billing_reminders:
+    class: BillingReminderJob
+    schedule: every day at 7am

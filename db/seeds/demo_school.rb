@@ -230,12 +230,28 @@ students.each do |fee_student|
   invoice = fee.invoices.find_or_initialize_by(student: fee_student)
   invoice.assign_attributes(amount: fee.amount, due_on: fee.due_on)
   invoice.save!
+  line_item = invoice.line_items.find_or_initialize_by(description: fee.name)
+  line_item.update!(category: :tuition, quantity: 1, unit_amount: fee.amount)
 end
 
 first_invoice = fee.invoices.find_by!(student: students.first)
 first_invoice.update!(discount: 50, discount_reason: "Sibling discount")
 payment = first_invoice.payments.find_or_initialize_by(reference: "DEMO-PAYMENT-001")
-payment.update!(amount: 250, paid_on: terms.first.starts_on + 7.days, payment_method: :bank_transfer)
+payment.update!(amount: 250, paid_on: terms.first.starts_on + 7.days, payment_method: :bank_transfer, recorded_by: administrator)
+first_invoice.refresh_status!
+
+scholarship_invoice = fee.invoices.find_by!(student: students.second)
+scholarship = scholarship_invoice.billing_adjustments.find_or_initialize_by(kind: :scholarship, reason: "Academic merit scholarship")
+scholarship.update!(amount: 100, created_by: administrator, approved_by: administrator)
+
+installment_invoice = fee.invoices.find_by!(student: students.third)
+[
+  [ "First installment", 375, fee.due_on - 14.days ],
+  [ "Final installment", 375, fee.due_on ]
+].each do |name, amount, due_on|
+  installment = installment_invoice.payment_installments.find_or_initialize_by(name:)
+  installment.update!(amount:, due_on:)
+end
 
 comment = students.first.report_card_comments.find_or_initialize_by(term: terms.first, kind: :homeroom_teacher)
 comment.assign_attributes(author: administrator, body: "A focused learner who participates well and should keep reading daily.", approved: true)

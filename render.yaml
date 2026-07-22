@@ -16,7 +16,7 @@ services:
       - key: RAILS_MAX_THREADS
         value: "5"
       - key: SOLID_QUEUE_IN_PUMA
-        value: "false"
+        value: "true"
       - key: SEED_DEMO_DATA
         value: "true"
       - key: PORT

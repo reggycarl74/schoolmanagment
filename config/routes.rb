@@ -35,8 +35,20 @@ Rails.application.routes.draw do
   resources :timetable_entries, only: %i[index new create destroy]
   resources :announcements, only: %i[index new create]
   resource :assessment_settings, only: %i[show create]
-  resources :invoices, only: %i[index new create] do
-    resources :payments, only: :create
+  resources :invoices, only: %i[index show new create] do
+    member do
+      patch :cancel
+      post :send_reminder
+    end
+    resources :payments, only: %i[create show] do
+      member { patch :reverse }
+    end
+    resources :invoice_line_items, only: %i[create destroy]
+    resources :billing_adjustments, only: :create
+    resources :payment_installments, only: %i[create destroy]
+  end
+  resources :students, only: [] do
+    resource :billing_statement, only: %i[show update]
   end
   resources :fee_structures, only: %i[index new create]
   resources :audit_events, only: :index
