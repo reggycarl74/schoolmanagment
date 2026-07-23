@@ -24,7 +24,7 @@ class LessonNote < ApplicationRecord
 
   def teacher_is_assigned_to_course
     return unless teacher && course_section
-    return if course_section.teachers.exists?(teacher.id)
+    return if TeachingAssignment.exists?(teacher:, classroom: course_section.classroom, subject: course_section.subject)
 
     errors.add(:teacher, "must be assigned to this class and subject")
   end

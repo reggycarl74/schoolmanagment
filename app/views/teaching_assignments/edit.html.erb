@@ -4,9 +4,8 @@
   <%= render "shared/form_errors", object: @assignment %>
   <div class="grid gap-5 sm:grid-cols-2">
     <div><%= form.label :teacher_id, class: "field-label" %><%= form.collection_select :teacher_id, @teachers, :id, :full_name, {}, class: "form-input" %></div>
-    <div><%= form.label :classroom_id, "Class", class: "field-label" %><%= form.collection_select :classroom_id, @classrooms, :id, :name, { selected: @assignment.course_section.classroom_id }, class: "form-input" %></div>
-    <div><%= form.label :subject_id, class: "field-label" %><%= form.collection_select :subject_id, @subjects, :id, :name, { selected: @assignment.course_section.subject_id }, class: "form-input" %></div>
-    <div><%= form.label :term_id, class: "field-label" %><%= form.collection_select :term_id, @terms, :id, :name, { selected: @assignment.course_section.term_id }, class: "form-input" %></div>
+    <div><%= form.label :classroom_id, "Class", class: "field-label" %><%= form.collection_select :classroom_id, @classrooms, :id, :name, {}, class: "form-input" %></div>
+    <div><%= form.label :subject_id, class: "field-label" %><%= form.collection_select :subject_id, @subjects, :id, :name, {}, class: "form-input" %></div>
   </div>
   <label class="flex items-center gap-3 text-sm font-medium"><%= form.check_box :lead %> Lead teacher</label>
   <%= form.submit "Update assignment", class: "primary-button" %>

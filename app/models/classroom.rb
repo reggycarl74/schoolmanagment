@@ -7,7 +7,7 @@ class Classroom < ApplicationRecord
   has_many :enrollments, dependent: :restrict_with_error
   has_many :students, through: :enrollments
   has_many :course_sections, dependent: :destroy
-  has_many :teaching_assignments, through: :course_sections
+  has_many :teaching_assignments, dependent: :destroy
   has_many :teachers, through: :teaching_assignments
   has_many :class_subject_orders, dependent: :destroy
 

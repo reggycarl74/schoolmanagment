@@ -66,7 +66,7 @@ class ExamResultsController < ApplicationController
 
     @term = @classroom.academic_year.terms.find(requested_term_id)
     @course = CourseSection.find_or_create_by!(classroom: @classroom, subject: @subject, term: @term)
-    if current_user.teacher? && !@course.teachers.exists?(current_user.teacher.id)
+    if current_user.teacher? && !TeachingAssignment.exists?(teacher: current_user.teacher, classroom: @classroom, subject: @subject)
       raise ActiveRecord::RecordNotFound, "You are not assigned to this class, subject, and term."
     end
     @components = component_definitions(@classroom)

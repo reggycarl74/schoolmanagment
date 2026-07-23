@@ -16,7 +16,7 @@ class LessonNotesController < ApplicationController
   end
 
   def new
-    terms = @assignments.map { |assignment| assignment.course_section.term }.uniq
+    terms = @assignments.flat_map { |assignment| assignment.classroom.academic_year.terms }.uniq
     current_term = terms.find { |term| Date.current.between?(term.starts_on, term.ends_on) }
     next_term = terms.select { |term| term.starts_on > Date.current }.min_by(&:starts_on)
     @lesson_note = LessonNote.new(lesson_date: current_term ? Date.current : next_term&.starts_on, status: :draft, duration_minutes: 45)
@@ -24,7 +24,8 @@ class LessonNotesController < ApplicationController
 
   def create
     assignment = available_assignments.find(plan_params[:teaching_assignment_id])
-    @lesson_note = assignment.course_section.lesson_notes.new(plan_attributes.merge(teacher: assignment.teacher))
+    course = assignment.course_section_for(Date.parse(plan_attributes[:lesson_date].to_s))
+    @lesson_note = course.lesson_notes.new(plan_attributes.merge(teacher: assignment.teacher))
     LessonPlanDocumentReader.prefill(@lesson_note, uploaded_files) if prefill_from_files?
     @lesson_note.files.attach(attachments_for_save) if attachments_for_save.any?
 
@@ -45,10 +46,12 @@ class LessonNotesController < ApplicationController
     assignment = available_assignments.find(plan_params[:teaching_assignment_id])
     @lesson_note = if plan_params[:record_id].present?
       editable_lesson_notes.find(plan_params[:record_id]).tap do |note|
-        note.assign_attributes(plan_attributes.merge(course_section: assignment.course_section, teacher: assignment.teacher))
+        course = assignment.course_section_for(Date.parse(plan_attributes[:lesson_date].to_s))
+        note.assign_attributes(plan_attributes.merge(course_section: course, teacher: assignment.teacher))
       end
     else
-      assignment.course_section.lesson_notes.new(plan_attributes.merge(teacher: assignment.teacher))
+      course = assignment.course_section_for(Date.parse(plan_attributes[:lesson_date].to_s))
+      course.lesson_notes.new(plan_attributes.merge(teacher: assignment.teacher))
     end
 
     LessonPlanDocumentReader.prefill(@lesson_note, uploaded_files)
@@ -68,7 +71,8 @@ class LessonNotesController < ApplicationController
     attributes = plan_attributes
     if plan_params[:teaching_assignment_id].present?
       assignment = available_assignments.find(plan_params[:teaching_assignment_id])
-      attributes = attributes.merge(course_section: assignment.course_section, teacher: assignment.teacher)
+      course = assignment.course_section_for(Date.parse(attributes[:lesson_date].to_s))
+      attributes = attributes.merge(course_section: course, teacher: assignment.teacher)
     end
     @lesson_note.assign_attributes(attributes)
     LessonPlanDocumentReader.prefill(@lesson_note, uploaded_files) if prefill_from_files?
@@ -120,9 +124,9 @@ class LessonNotesController < ApplicationController
   end
 
   def available_assignments
-    scope = TeachingAssignment.joins(course_section: :classroom).where(classrooms: { school_id: current_school.id })
+    scope = TeachingAssignment.joins(:classroom).where(classrooms: { school_id: current_school.id })
     scope = scope.where(teacher_id: current_user.teacher.id) if current_user.teacher?
-    scope.includes(:teacher, course_section: %i[classroom subject term])
+    scope.includes(:teacher, :subject, classroom: { academic_year: :terms })
   end
 
   def load_options

@@ -38,7 +38,12 @@ class ClassroomPostsController < ApplicationController
 
   def writable_courses
     scope = CourseSection.joins(:classroom).where(classrooms: { school_id: current_school.id })
-    scope = scope.joins(:teaching_assignments).where(teaching_assignments: { teacher_id: current_user.teacher.id }) if current_user.teacher?
+    if current_user.teacher?
+      scope = scope.where(
+        "EXISTS (SELECT 1 FROM teaching_assignments ta WHERE ta.teacher_id = ? AND ta.classroom_id = course_sections.classroom_id AND ta.subject_id = course_sections.subject_id)",
+        current_user.teacher.id
+      )
+    end
     scope.distinct
   end
 

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_07_23_110000) do
+ActiveRecord::Schema[8.0].define(version: 2026_07_23_120000) do
   create_table "academic_years", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.bigint "school_id", null: false
     t.string "name", null: false
@@ -527,13 +527,17 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_23_110000) do
   end
 
   create_table "teaching_assignments", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
-    t.bigint "course_section_id", null: false
+    t.bigint "course_section_id"
     t.bigint "teacher_id", null: false
     t.boolean "lead", default: true, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["course_section_id", "teacher_id"], name: "index_teaching_assignments_on_course_section_id_and_teacher_id", unique: true
+    t.bigint "classroom_id", null: false
+    t.bigint "subject_id", null: false
+    t.index ["classroom_id"], name: "index_teaching_assignments_on_classroom_id"
     t.index ["course_section_id"], name: "index_teaching_assignments_on_course_section_id"
+    t.index ["subject_id"], name: "index_teaching_assignments_on_subject_id"
+    t.index ["teacher_id", "classroom_id", "subject_id"], name: "idx_teacher_class_subject_assignment", unique: true
     t.index ["teacher_id"], name: "index_teaching_assignments_on_teacher_id"
   end
 
@@ -646,7 +650,9 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_23_110000) do
   add_foreign_key "subjects", "schools"
   add_foreign_key "teachers", "schools"
   add_foreign_key "teachers", "users"
+  add_foreign_key "teaching_assignments", "classrooms"
   add_foreign_key "teaching_assignments", "course_sections"
+  add_foreign_key "teaching_assignments", "subjects"
   add_foreign_key "teaching_assignments", "teachers"
   add_foreign_key "terms", "academic_years"
   add_foreign_key "timetable_entries", "course_sections"
