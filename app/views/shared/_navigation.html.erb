@@ -9,7 +9,7 @@
 <% elsif current_user.teacher? %>
   <% role_label = "Teacher"; role_colors = "bg-emerald-50 text-emerald-700" %>
   <% navigation_groups = [
-    ["My Students", "👥", [["Student list", students_path], ["My classes", classrooms_path]]],
+    ["My Students", "👥", [["Student list", students_path], ["My classes", classrooms_path], ["Promote students", new_promotion_path]]],
     ["Teaching", "📚", [["My subjects", subjects_path], ["Classroom", classroom_posts_path], ["Enter results", new_exam_result_path], ["Lesson plans", lesson_notes_path]]],
     ["Assessment", "📝", [["Assessment workflow", assessments_path], ["Teacher remarks", report_card_remark_templates_path], ["Attendance analytics", attendance_analytics_path]]],
     ["Schedule", "📅", [["Take attendance", attendance_register_path], ["My timetable", timetable_entries_path], ["School news", announcements_path]]]

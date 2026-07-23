@@ -1,5 +1,5 @@
 class PromotionsController < ApplicationController
-  before_action :require_administrator
+  before_action :require_teacher_or_administrator
   before_action :load_classrooms
 
   def new
@@ -7,7 +7,7 @@ class PromotionsController < ApplicationController
   end
 
   def create
-    from = current_school.classrooms.find(params[:from_classroom_id])
+    from = promotion_source_scope.find(params[:from_classroom_id])
     target = current_school.classrooms.find(params[:to_classroom_id])
     student_ids = params.fetch(:student_ids, [])
 
@@ -19,19 +19,34 @@ class PromotionsController < ApplicationController
         end
       end
     end
-    redirect_to new_promotion_path(from_classroom_id: target.id), notice: "Selected students were promoted."
+    redirect_to new_promotion_path, notice: "Selected students were promoted."
   end
 
   private
 
   def load_classrooms
-    @classrooms = current_school.classrooms.includes(:academic_year).order("academic_years.starts_on", :name)
+    @destination_classrooms = current_school.classrooms.joins(:academic_year).includes(:academic_year).order("academic_years.starts_on", :name)
+    @source_classrooms = if current_user.teacher?
+      promotion_source_scope.joins(:academic_year).includes(:academic_year).order("academic_years.starts_on", :name)
+    else
+      @destination_classrooms
+    end
   end
 
   def load_students
     return if params[:from_classroom_id].blank?
 
-    @from_classroom = current_school.classrooms.find(params[:from_classroom_id])
+    @from_classroom = promotion_source_scope.find(params[:from_classroom_id])
     @enrollments = @from_classroom.enrollments.includes(:student).where(status: :enrolled)
+  end
+
+  def promotion_source_scope
+    current_user.teacher? ? accessible_classrooms : current_school.classrooms
+  end
+
+  def require_teacher_or_administrator
+    return if current_user.administrator? || current_user.teacher?
+
+    redirect_to root_path, alert: "Only administrators and assigned teachers can promote students."
   end
 end
