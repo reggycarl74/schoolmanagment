@@ -22,12 +22,31 @@ class AssessmentSettingsController < ApplicationController
       current_school.assessment_components.new(params.expect(assessment_component: %i[classroom_id title maximum_points kind position active]).merge(classroom: classroom))
     end
     record.save!
-    redirect_to assessment_settings_path, notice: "Assessment setting was added."
+    redirect_to assessment_settings_path(classroom_id: record.try(:classroom_id)), notice: "Assessment setting was added."
   rescue ActiveRecord::RecordInvalid => error
-    redirect_to assessment_settings_path, alert: error.record.errors.full_messages.to_sentence
+    redirect_to assessment_settings_path(classroom_id: error.record.try(:classroom_id)), alert: error.record.errors.full_messages.to_sentence
+  end
+
+  def update_component
+    component = current_school.assessment_components.find(params[:id])
+    component.update!(component_params)
+    redirect_to assessment_settings_path(classroom_id: component.classroom_id), notice: "Assessment component was updated."
+  rescue ActiveRecord::RecordInvalid => error
+    redirect_to assessment_settings_path(classroom_id: error.record.classroom_id), alert: error.record.errors.full_messages.to_sentence
+  end
+
+  def destroy_component
+    component = current_school.assessment_components.find(params[:id])
+    classroom_id = component.classroom_id
+    component.destroy!
+    redirect_to assessment_settings_path(classroom_id: classroom_id), notice: "Assessment component was removed."
   end
 
   private
+
+  def component_params
+    params.expect(assessment_component: %i[title maximum_points kind position active])
+  end
 
   def save_classroom_configuration
     classroom = current_school.classrooms.find(params[:classroom_id])

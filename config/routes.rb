@@ -45,6 +45,8 @@ Rails.application.routes.draw do
     resources :student_submissions, only: %i[create update]
   end
   resource :assessment_settings, only: %i[show create]
+  patch "assessment_settings/components/:id", to: "assessment_settings#update_component", as: :assessment_setting_component
+  delete "assessment_settings/components/:id", to: "assessment_settings#destroy_component"
   resources :invoices, only: %i[index show new create] do
     member do
       patch :cancel
