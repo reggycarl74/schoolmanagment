@@ -17,6 +17,7 @@ class PaymentsController < ApplicationController
   def show
     @invoice = school_invoice
     @payment = @invoice.payments.find(params[:id])
+    @deliveries = current_school.notification_deliveries.where(source: @payment).includes(:recipient).order(:created_at)
   end
 
   def reverse
@@ -50,9 +51,6 @@ class PaymentsController < ApplicationController
   end
 
   def notify_guardians(payment)
-    payment.invoice.student.guardians.merge(StudentGuardian.for_billing).where(active: true).find_each do |guardian|
-      delivery = NotificationDelivery.create!(school: current_school, recipient: guardian, channel: :email, subject: "Payment received", body: "Receipt #{payment.receipt_number}: received #{payment.amount} #{current_school.currency_code} for #{payment.invoice.student.full_name}. Remaining balance: #{payment.invoice.balance}.")
-      NotificationDeliveryJob.perform_later(delivery)
-    end
+    PaymentNotificationService.call(payment)
   end
 end

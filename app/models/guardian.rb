@@ -3,6 +3,7 @@ class Guardian < ApplicationRecord
   belongs_to :school
   has_many :student_guardians, dependent: :destroy
   has_many :students, through: :student_guardians
+  has_many :notification_deliveries, as: :recipient, dependent: :destroy
   has_one :user, dependent: :nullify
 
   enum :preferred_contact_method, { email: 0, phone: 1, sms: 2, whatsapp: 3 }, prefix: :contact_by

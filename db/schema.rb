@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_07_22_190000) do
+ActiveRecord::Schema[8.0].define(version: 2026_07_23_100000) do
   create_table "academic_years", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.bigint "school_id", null: false
     t.string "name", null: false
@@ -233,6 +233,14 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_22_190000) do
     t.text "address"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "alternate_phone"
+    t.string "preferred_language", default: "English", null: false
+    t.integer "preferred_contact_method", default: 1, null: false
+    t.string "occupation"
+    t.boolean "active", default: true, null: false
+    t.text "private_notes"
+    t.index ["school_id", "active"], name: "index_guardians_on_school_id_and_active"
+    t.index ["school_id", "email"], name: "index_guardians_on_school_id_and_email"
     t.index ["school_id", "phone"], name: "index_guardians_on_school_id_and_phone"
     t.index ["school_id"], name: "index_guardians_on_school_id"
   end
@@ -314,7 +322,10 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_22_190000) do
     t.text "error_message"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "source_type"
+    t.bigint "source_id"
     t.index ["recipient_type", "recipient_id"], name: "index_notification_deliveries_on_recipient"
+    t.index ["source_type", "source_id"], name: "index_notification_deliveries_on_source"
     t.index ["school_id"], name: "index_notification_deliveries_on_school_id"
   end
 
@@ -400,8 +411,20 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_22_190000) do
     t.boolean "pickup_authorized", default: true, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "emergency_contact", default: false, null: false
+    t.integer "emergency_priority"
+    t.boolean "lives_with_student", default: false, null: false
+    t.boolean "financially_responsible", default: false, null: false
+    t.boolean "academic_access", default: true, null: false
+    t.boolean "attendance_access", default: true, null: false
+    t.boolean "billing_access", default: true, null: false
+    t.boolean "contact_allowed", default: true, null: false
+    t.text "custody_restrictions"
+    t.text "pickup_notes"
     t.index ["guardian_id"], name: "index_student_guardians_on_guardian_id"
+    t.index ["student_id", "emergency_priority"], name: "index_student_guardians_on_student_id_and_emergency_priority"
     t.index ["student_id", "guardian_id"], name: "index_student_guardians_on_student_id_and_guardian_id", unique: true
+    t.index ["student_id", "primary_contact"], name: "index_student_guardians_on_student_id_and_primary_contact"
     t.index ["student_id"], name: "index_student_guardians_on_student_id"
   end
 

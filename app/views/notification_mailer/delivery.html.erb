@@ -1,0 +1,4 @@
+<h1><%= @delivery.subject %></h1>
+<p>Hello <%= @recipient.first_name %>,</p>
+<%= simple_format(@delivery.body) %>
+<p>Regards,<br><%= @delivery.school.name %></p>
