@@ -1,7 +1,7 @@
 class TeachersController < ResourceIndexController
   before_action :require_administrator
   def index
-    @records = current_school.teachers.includes(course_sections: :classroom).order(:last_name, :first_name).limit(50)
+    @records = current_school.teachers.includes(:teaching_assignments, :assigned_classrooms).order(:last_name, :first_name).limit(50)
   end
 
   def new
