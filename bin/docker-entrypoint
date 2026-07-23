@@ -15,7 +15,9 @@ if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
       echo "==> Database preparation completed."
       if [ "${SEED_DEMO_DATA:-false}" = "true" ]; then
         echo "==> Seeding demo data..."
-        if timeout "${DB_SEED_TIMEOUT:-240}" ./bin/rails db:seed; then
+        # Demo seeds update thousands of records. Audit rows are useful for
+        # user actions, but add substantial remote-database latency here.
+        if DISABLE_AUDIT_EVENTS=true timeout "${DB_SEED_TIMEOUT:-600}" ./bin/rails db:seed; then
           echo "==> Demo data seeding completed."
         else
           echo "==> Demo data seeding failed or timed out; web service remains available."
