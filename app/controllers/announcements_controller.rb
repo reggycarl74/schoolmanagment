@@ -15,12 +15,15 @@ class AnnouncementsController < ApplicationController
 
   def create
     @announcement = current_school.announcements.new(announcement_params.merge(author: current_user))
-    return redirect_to(announcements_path, notice: "Announcement was published.") if @announcement.save
+    if @announcement.save
+      AnnouncementDeliveryService.call(@announcement)
+      return redirect_to(announcements_path, notice: "Announcement was published and queued for delivery.")
+    end
 
     render :new, status: :unprocessable_entity
   end
 
   private
 
-  def announcement_params = params.expect(announcement: %i[title body audience published_at])
+  def announcement_params = params.expect(announcement: %i[title body audience published_at send_email send_sms])
 end

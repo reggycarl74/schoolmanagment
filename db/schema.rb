@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_07_23_100000) do
+ActiveRecord::Schema[8.0].define(version: 2026_07_23_110000) do
   create_table "academic_years", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.bigint "school_id", null: false
     t.string "name", null: false
@@ -60,6 +60,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_23_100000) do
     t.datetime "published_at", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.boolean "send_email", default: false, null: false
+    t.boolean "send_sms", default: false, null: false
     t.index ["author_id"], name: "index_announcements_on_author_id"
     t.index ["school_id"], name: "index_announcements_on_school_id"
   end
@@ -73,7 +75,9 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_23_100000) do
     t.boolean "active", default: true, null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["school_id", "title"], name: "index_assessment_components_on_school_id_and_title", unique: true
+    t.bigint "classroom_id"
+    t.index ["classroom_id"], name: "index_assessment_components_on_classroom_id"
+    t.index ["school_id", "classroom_id", "title"], name: "idx_assessment_components_school_class_title", unique: true
     t.index ["school_id"], name: "index_assessment_components_on_school_id"
   end
 
@@ -133,6 +137,33 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_23_100000) do
     t.index ["invoice_id"], name: "index_billing_adjustments_on_invoice_id"
   end
 
+  create_table "class_subject_orders", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
+    t.bigint "classroom_id", null: false
+    t.bigint "subject_id", null: false
+    t.integer "position", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["classroom_id", "position"], name: "index_class_subject_orders_on_classroom_id_and_position", unique: true
+    t.index ["classroom_id", "subject_id"], name: "index_class_subject_orders_on_classroom_id_and_subject_id", unique: true
+    t.index ["classroom_id"], name: "index_class_subject_orders_on_classroom_id"
+    t.index ["subject_id"], name: "index_class_subject_orders_on_subject_id"
+  end
+
+  create_table "classroom_posts", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
+    t.bigint "course_section_id", null: false
+    t.bigint "author_id", null: false
+    t.integer "kind", default: 0, null: false
+    t.string "title", null: false
+    t.text "body"
+    t.datetime "due_at"
+    t.datetime "published_at", null: false
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["author_id"], name: "index_classroom_posts_on_author_id"
+    t.index ["course_section_id", "published_at"], name: "index_classroom_posts_on_course_section_id_and_published_at"
+    t.index ["course_section_id"], name: "index_classroom_posts_on_course_section_id"
+  end
+
   create_table "classrooms", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.bigint "school_id", null: false
     t.bigint "academic_year_id", null: false
@@ -142,10 +173,12 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_23_100000) do
     t.integer "capacity"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "result_entry_term_id"
     t.index ["academic_year_id", "name"], name: "index_classrooms_on_academic_year_id_and_name", unique: true
     t.index ["academic_year_id"], name: "index_classrooms_on_academic_year_id"
     t.index ["grade_level_id"], name: "index_classrooms_on_grade_level_id"
     t.index ["homeroom_teacher_id"], name: "index_classrooms_on_homeroom_teacher_id"
+    t.index ["result_entry_term_id"], name: "index_classrooms_on_result_entry_term_id"
     t.index ["school_id"], name: "index_classrooms_on_school_id"
   end
 
@@ -183,6 +216,10 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_23_100000) do
     t.date "due_on", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "frequency", default: 0, null: false
+    t.date "starts_on"
+    t.date "ends_on"
+    t.boolean "active", default: true, null: false
     t.index ["academic_year_id"], name: "index_fee_structures_on_academic_year_id"
     t.index ["school_id"], name: "index_fee_structures_on_school_id"
   end
@@ -271,10 +308,11 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_23_100000) do
     t.text "notes"
     t.datetime "cancelled_at"
     t.bigint "cancelled_by_id"
+    t.date "charge_on"
     t.index ["cancelled_by_id"], name: "index_invoices_on_cancelled_by_id"
     t.index ["fee_structure_id"], name: "index_invoices_on_fee_structure_id"
     t.index ["number"], name: "index_invoices_on_number", unique: true
-    t.index ["student_id", "fee_structure_id"], name: "index_invoices_on_student_id_and_fee_structure_id", unique: true
+    t.index ["student_id", "fee_structure_id", "charge_on"], name: "idx_invoices_student_fee_charge_date", unique: true
     t.index ["student_id"], name: "index_invoices_on_student_id"
   end
 
@@ -325,8 +363,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_23_100000) do
     t.string "source_type"
     t.bigint "source_id"
     t.index ["recipient_type", "recipient_id"], name: "index_notification_deliveries_on_recipient"
-    t.index ["source_type", "source_id"], name: "index_notification_deliveries_on_source"
     t.index ["school_id"], name: "index_notification_deliveries_on_school_id"
+    t.index ["source_type", "source_id"], name: "index_notification_deliveries_on_source"
   end
 
   create_table "payment_installments", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
@@ -426,6 +464,21 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_23_100000) do
     t.index ["student_id", "guardian_id"], name: "index_student_guardians_on_student_id_and_guardian_id", unique: true
     t.index ["student_id", "primary_contact"], name: "index_student_guardians_on_student_id_and_primary_contact"
     t.index ["student_id"], name: "index_student_guardians_on_student_id"
+  end
+
+  create_table "student_submissions", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
+    t.bigint "classroom_post_id", null: false
+    t.bigint "student_id", null: false
+    t.text "body"
+    t.integer "status", default: 0, null: false
+    t.datetime "submitted_at"
+    t.decimal "score", precision: 8, scale: 2
+    t.text "feedback"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["classroom_post_id", "student_id"], name: "index_student_submissions_on_classroom_post_id_and_student_id", unique: true
+    t.index ["classroom_post_id"], name: "index_student_submissions_on_classroom_post_id"
+    t.index ["student_id"], name: "index_student_submissions_on_student_id"
   end
 
   create_table "students", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
@@ -536,6 +589,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_23_100000) do
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "announcements", "schools"
   add_foreign_key "announcements", "users", column: "author_id"
+  add_foreign_key "assessment_components", "classrooms"
   add_foreign_key "assessment_components", "schools"
   add_foreign_key "assessments", "course_sections"
   add_foreign_key "attendance_records", "enrollments"
@@ -545,10 +599,15 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_23_100000) do
   add_foreign_key "billing_adjustments", "invoices"
   add_foreign_key "billing_adjustments", "users", column: "approved_by_id"
   add_foreign_key "billing_adjustments", "users", column: "created_by_id"
+  add_foreign_key "class_subject_orders", "classrooms"
+  add_foreign_key "class_subject_orders", "subjects"
+  add_foreign_key "classroom_posts", "course_sections"
+  add_foreign_key "classroom_posts", "users", column: "author_id"
   add_foreign_key "classrooms", "academic_years"
   add_foreign_key "classrooms", "grade_levels"
   add_foreign_key "classrooms", "schools"
   add_foreign_key "classrooms", "teachers", column: "homeroom_teacher_id"
+  add_foreign_key "classrooms", "terms", column: "result_entry_term_id"
   add_foreign_key "course_sections", "classrooms"
   add_foreign_key "course_sections", "subjects"
   add_foreign_key "course_sections", "terms"
@@ -581,6 +640,8 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_23_100000) do
   add_foreign_key "report_card_remark_templates", "users", column: "author_id"
   add_foreign_key "student_guardians", "guardians"
   add_foreign_key "student_guardians", "students"
+  add_foreign_key "student_submissions", "classroom_posts"
+  add_foreign_key "student_submissions", "students"
   add_foreign_key "students", "schools"
   add_foreign_key "subjects", "schools"
   add_foreign_key "teachers", "schools"

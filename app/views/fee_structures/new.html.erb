@@ -1,1 +1,17 @@
-<% content_for :title, "New fee · SchoolOS" %><%= render "shared/form_header", title: "Create fee structure", back_path: invoices_path %><%= form_with model: @fee_structure, class: "mx-auto max-w-2xl space-y-5 rounded-2xl border bg-white p-8" do |f| %><%= render "shared/form_errors", object: @fee_structure %><%= f.collection_select :academic_year_id, @academic_years, :id, :name, { prompt: "Academic year" }, class: "form-input" %><%= f.text_field :name, placeholder: "Fee name", class: "form-input" %><%= f.number_field :amount, step: 0.01, placeholder: "Amount", class: "form-input" %><%= f.date_field :due_on, class: "form-input" %><%= f.submit "Save fee", class: "primary-button" %><% end %>
+<% content_for :title, "New fee · SchoolOS" %>
+<%= render "shared/form_header", title: "Create fee structure", back_path: invoices_path %>
+<%= form_with model: @fee_structure, class: "mx-auto max-w-2xl space-y-5 rounded-2xl border bg-white p-8" do |f| %>
+  <%= render "shared/form_errors", object: @fee_structure %>
+  <%= f.collection_select :academic_year_id, @academic_years, :id, :name, { prompt: "Academic year" }, class: "form-input" %>
+  <%= f.text_field :name, placeholder: "Fee name", class: "form-input" %>
+  <%= f.number_field :amount, step: 0.01, placeholder: "Amount charged each time", class: "form-input" %>
+  <%= f.select :frequency, FeeStructure.frequencies.keys.map { |frequency| [frequency.humanize, frequency] }, {}, class: "form-input" %>
+  <div class="grid gap-4 sm:grid-cols-2">
+    <div><%= f.label :starts_on, "Daily charging starts", class: "form-label" %><%= f.date_field :starts_on, class: "form-input" %></div>
+    <div><%= f.label :ends_on, "Daily charging ends (optional)", class: "form-label" %><%= f.date_field :ends_on, class: "form-input" %></div>
+  </div>
+  <p class="rounded-xl bg-amber-50 p-3 text-sm text-amber-800">For a daily fee, one invoice is created per active enrolled student each day within these dates. One-time fees use the due date below.</p>
+  <div><%= f.label :due_on, "Due date", class: "form-label" %><%= f.date_field :due_on, class: "form-input" %></div>
+  <label class="flex items-center gap-3"><%= f.check_box :active %><span class="text-sm font-semibold">Active and available for charging</span></label>
+  <%= f.submit "Save fee", class: "primary-button" %>
+<% end %>

@@ -11,6 +11,7 @@ class Invoice < ApplicationRecord
   before_validation :set_issued_on, on: :create
   validates :number, presence: true, uniqueness: true
   validates :amount, numericality: { greater_than: 0 }
+  validates :charge_on, uniqueness: { scope: %i[student_id fee_structure_id] }, allow_nil: true
 
   def paid_amount = payments.active.sum(:amount)
   def credit_adjustments = billing_adjustments.where(kind: BillingAdjustment.credit_kinds).sum(:amount)

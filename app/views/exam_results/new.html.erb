@@ -11,7 +11,7 @@
 <%= form_with url: new_exam_result_path, method: :get, class: "mt-8 grid gap-4 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm md:grid-cols-4 md:items-end" do |form| %>
   <div><%= form.label :classroom_id, "Class", class: "field-label" %><%= form.collection_select :classroom_id, @classrooms, :id, :name, { prompt: "Select class", selected: params[:classroom_id] }, { required: true, class: "form-input" } %></div>
   <div><%= form.label :subject_id, "Subject", class: "field-label" %><%= form.collection_select :subject_id, @subjects, :id, :name, { prompt: "Select subject", selected: params[:subject_id] }, { required: true, class: "form-input" } %></div>
-  <div><%= form.label :term_id, "Term", class: "field-label" %><%= form.collection_select :term_id, @terms, :id, :name, { prompt: "Select term", selected: params[:term_id] }, { required: true, class: "form-input" } %></div>
+  <% if current_user.teacher? %><div><span class="field-label">Term</span><div class="form-input bg-slate-100 text-slate-500">Set and locked by administrator</div></div><% else %><div><%= form.label :term_id, "Term", class: "field-label" %><%= form.collection_select :term_id, @terms, :id, :name, { prompt: "Select term", selected: params[:term_id] }, { required: true, class: "form-input" } %></div><% end %>
   <%= form.submit "Load mark sheet", class: "primary-button h-[50px]" %>
 <% end %>
 

@@ -1,10 +1,10 @@
 class ExamResultsController < ApplicationController
   before_action :require_staff
   DEFAULT_COMPONENTS = {
-    mid_term: { title: "Mid Term", maximum_points: 20, kind: :exam },
     class_work: { title: "Class Work", maximum_points: 10, kind: :assignment },
     class_test: { title: "Class Test", maximum_points: 10, kind: :quiz },
     project: { title: "Project", maximum_points: 10, kind: :project },
+    mid_term: { title: "Mid Term", maximum_points: 20, kind: :exam },
     exam: { title: "Exam", maximum_points: 50, kind: :exam }
   }.freeze
 
@@ -15,7 +15,8 @@ class ExamResultsController < ApplicationController
   end
 
   def new
-    load_grid if filter_params.values.all?(&:present?)
+    required = filter_params.values_at(:classroom_id, :subject_id)
+    load_grid if required.all?(&:present?) && (current_user.teacher? || filter_params[:term_id].present?)
   rescue ActiveRecord::RecordNotFound
     @form_error = "Choose a class, subject, and term from the same academic year."
   end
@@ -60,8 +61,15 @@ class ExamResultsController < ApplicationController
   def load_selected_records
     @classroom = accessible_classrooms.find(filter_params[:classroom_id])
     @subject = current_school.subjects.find(filter_params[:subject_id])
-    @term = @classroom.academic_year.terms.find(filter_params[:term_id])
+    requested_term_id = current_user.teacher? ? @classroom.result_entry_term_id : filter_params[:term_id]
+    raise ActiveRecord::RecordNotFound if requested_term_id.blank?
+
+    @term = @classroom.academic_year.terms.find(requested_term_id)
     @course = CourseSection.find_or_create_by!(classroom: @classroom, subject: @subject, term: @term)
+    if current_user.teacher? && !@course.teachers.exists?(current_user.teacher.id)
+      raise ActiveRecord::RecordNotFound, "You are not assigned to this class, subject, and term."
+    end
+    @components = component_definitions(@classroom)
   end
 
   def load_grid
@@ -89,14 +97,15 @@ class ExamResultsController < ApplicationController
   end
 
   def load_options
-    @components = component_definitions
+    @components = DEFAULT_COMPONENTS
     @classrooms = accessible_classrooms.includes(:academic_year).order(:name)
     @subjects = current_school.subjects.order(:name)
     @terms = current_school.academic_years.includes(:terms).flat_map(&:terms).sort_by(&:starts_on).reverse
   end
 
-  def component_definitions
-    records = current_school.assessment_components.where(active: true).order(:position)
+  def component_definitions(classroom)
+    records = current_school.assessment_components.where(classroom: classroom, active: true).order(:position)
+    records = current_school.assessment_components.where(classroom_id: nil, active: true).order(:position) if records.empty?
     return DEFAULT_COMPONENTS if records.empty?
 
     records.to_h do |record|

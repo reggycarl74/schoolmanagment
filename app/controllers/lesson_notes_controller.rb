@@ -25,6 +25,7 @@ class LessonNotesController < ApplicationController
   def create
     assignment = available_assignments.find(plan_params[:teaching_assignment_id])
     @lesson_note = assignment.course_section.lesson_notes.new(plan_attributes.merge(teacher: assignment.teacher))
+    LessonPlanDocumentReader.prefill(@lesson_note, uploaded_files) if prefill_from_files?
     @lesson_note.files.attach(uploaded_files) if uploaded_files.any?
 
     if @lesson_note.save
@@ -47,6 +48,7 @@ class LessonNotesController < ApplicationController
       attributes = attributes.merge(course_section: assignment.course_section, teacher: assignment.teacher)
     end
     @lesson_note.assign_attributes(attributes)
+    LessonPlanDocumentReader.prefill(@lesson_note, uploaded_files) if prefill_from_files?
     @lesson_note.files.attach(uploaded_files) if uploaded_files.any?
 
     if @lesson_note.save
@@ -65,15 +67,19 @@ class LessonNotesController < ApplicationController
   end
 
   def plan_params
-    params.expect(lesson_note: [ :teaching_assignment_id, :lesson_date, :starts_at, :duration_minutes, :topic, :objectives, :materials, :content, :homework, :status, { files: [] } ])
+    params.expect(lesson_note: [ :teaching_assignment_id, :lesson_date, :starts_at, :duration_minutes, :topic, :objectives, :materials, :content, :homework, :status, :prefill_from_files, { files: [] } ])
   end
 
   def plan_attributes
-    plan_params.except(:teaching_assignment_id, :files)
+    plan_params.except(:teaching_assignment_id, :files, :prefill_from_files)
   end
 
   def uploaded_files
     Array(plan_params[:files]).reject(&:blank?)
+  end
+
+  def prefill_from_files?
+    ActiveModel::Type::Boolean.new.cast(plan_params[:prefill_from_files]) && uploaded_files.any?
   end
 
   def available_assignments

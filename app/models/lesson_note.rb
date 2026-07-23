@@ -1,5 +1,5 @@
 class LessonNote < ApplicationRecord
-  attr_accessor :teaching_assignment_id
+  attr_accessor :teaching_assignment_id, :prefill_from_files
   belongs_to :course_section
   belongs_to :teacher
   has_many_attached :files
@@ -31,7 +31,7 @@ class LessonNote < ApplicationRecord
 
   def acceptable_files
     files.each do |file|
-      errors.add(:files, "must be PDF, Word, PowerPoint, or an image") unless file.content_type.in?(%w[application/pdf application/msword application/vnd.openxmlformats-officedocument.wordprocessingml.document application/vnd.ms-powerpoint application/vnd.openxmlformats-officedocument.presentationml.presentation image/png image/jpeg image/webp])
+      errors.add(:files, "must be text, PDF, Word, PowerPoint, or an image") unless file.content_type.in?(%w[text/plain application/pdf application/msword application/vnd.openxmlformats-officedocument.wordprocessingml.document application/vnd.ms-powerpoint application/vnd.openxmlformats-officedocument.presentationml.presentation image/png image/jpeg image/webp])
       errors.add(:files, "must each be smaller than 15 MB") if file.byte_size > 15.megabytes
     end
   end

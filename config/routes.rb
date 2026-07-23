@@ -33,12 +33,15 @@ Rails.application.routes.draw do
   resources :exam_results, only: %i[index new create]
   resources :lesson_notes, only: %i[index new create edit update]
   resources :grades, only: %i[edit update]
-  resources :teaching_assignments, only: %i[index new create destroy]
+  resources :teaching_assignments, only: %i[index new create edit update destroy]
   resource :attendance_register, only: %i[show create]
   resource :promotion, only: %i[new create]
   resources :report_cards, only: :show
   resources :timetable_entries, only: %i[index new create destroy]
   resources :announcements, only: %i[index new create]
+  resources :classroom_posts, only: %i[index show new create] do
+    resources :student_submissions, only: %i[create update]
+  end
   resource :assessment_settings, only: %i[show create]
   resources :invoices, only: %i[index show new create] do
     member do

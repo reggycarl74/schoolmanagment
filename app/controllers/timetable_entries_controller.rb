@@ -12,7 +12,10 @@ class TimetableEntriesController < ApplicationController
 
   def create
     @entry = TimetableEntry.new(entry_params)
-    return redirect_to(timetable_entries_path, notice: "Timetable period was added.") if @entry.save
+    if @entry.save
+      TimetableNotificationService.created(@entry)
+      return redirect_to(timetable_entries_path, notice: "Timetable period was added and the teacher was notified.")
+    end
 
     render :new, status: :unprocessable_entity
   end

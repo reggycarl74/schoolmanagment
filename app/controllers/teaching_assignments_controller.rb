@@ -1,6 +1,7 @@
 class TeachingAssignmentsController < ApplicationController
   before_action :require_administrator
-  before_action :load_options, only: %i[new create]
+  before_action :set_assignment, only: %i[edit update destroy]
+  before_action :load_options, only: %i[new create edit update]
 
   def index
     @assignments = TeachingAssignment.joins(:teacher, course_section: :classroom)
@@ -32,15 +33,37 @@ class TeachingAssignmentsController < ApplicationController
     render :new, status: :unprocessable_entity
   end
 
+  def edit; end
+
+  def update
+    classroom = current_school.classrooms.find(assignment_params[:classroom_id])
+    teacher = current_school.teachers.find(assignment_params[:teacher_id])
+    subject = current_school.subjects.find(assignment_params[:subject_id])
+    term = classroom.academic_year.terms.find(assignment_params[:term_id])
+    course = CourseSection.find_or_create_by!(classroom: classroom, subject: subject, term: term)
+
+    if @assignment.update(course_section: course, teacher: teacher, lead: assignment_params[:lead])
+      redirect_to teaching_assignments_path, notice: "Teacher assignment was updated."
+    else
+      render :edit, status: :unprocessable_entity
+    end
+  rescue ActiveRecord::RecordNotFound => error
+    @assignment.errors.add(:base, error.message)
+    render :edit, status: :unprocessable_entity
+  end
+
   def destroy
-    assignment = TeachingAssignment.joins(course_section: :classroom)
-      .where(classrooms: { school_id: current_school.id })
-      .find(params[:id])
-    assignment.destroy!
+    @assignment.destroy!
     redirect_to teaching_assignments_path, notice: "Teacher assignment was removed."
   end
 
   private
+
+  def set_assignment
+    @assignment = TeachingAssignment.joins(course_section: :classroom)
+      .where(classrooms: { school_id: current_school.id })
+      .find(params[:id])
+  end
 
   def assignment_params
     params.expect(teaching_assignment: %i[teacher_id classroom_id subject_id term_id lead])

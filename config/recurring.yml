@@ -2,3 +2,9 @@ production:
   billing_reminders:
     class: BillingReminderJob
     schedule: every day at 7am
+  timetable_reminders:
+    class: TimetableReminderJob
+    schedule: every minute
+  daily_fee_charges:
+    class: DailyFeeChargeJob
+    schedule: every day at 12:05am

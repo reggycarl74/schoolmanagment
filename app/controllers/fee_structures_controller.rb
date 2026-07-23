@@ -22,5 +22,7 @@ class FeeStructuresController < ApplicationController
 
   private
 
-  def fee_params = params.expect(fee_structure: %i[academic_year_id name amount due_on])
+  def fee_params
+    params.expect(fee_structure: %i[academic_year_id name amount due_on frequency starts_on ends_on active])
+  end
 end

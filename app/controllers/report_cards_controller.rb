@@ -32,12 +32,15 @@ class ReportCardsController < ApplicationController
   end
 
   def build_subject_results
-    @grades.group_by { |grade| grade.assessment.course_section.subject }.map do |subject, grades|
+    results = @grades.group_by { |grade| grade.assessment.course_section.subject }.map do |subject, grades|
       earned = grades.sum { |grade| grade.points.to_d }
       possible = grades.sum { |grade| grade.assessment.maximum_points.to_d }
       percentage = possible.positive? ? earned / possible * 100 : 0
       scale = current_school.grading_scales.where("minimum_percentage <= ?", percentage).order(minimum_percentage: :desc).first
       { subject:, earned:, possible:, percentage:, scale: }
     end
+    classroom = @student.enrollments.find { |enrollment| enrollment.classroom.academic_year_id == @term&.academic_year_id }&.classroom
+    positions = classroom&.class_subject_orders&.pluck(:subject_id, :position)&.to_h || {}
+    results.sort_by { |result| [ positions.fetch(result[:subject].id, 10_000), result[:subject].name ] }
   end
 end

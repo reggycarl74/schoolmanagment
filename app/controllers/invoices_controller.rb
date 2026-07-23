@@ -22,6 +22,10 @@ class InvoicesController < ApplicationController
 
   def create
     fee = current_school.fee_structures.find(invoice_params[:fee_structure_id])
+    if fee.daily?
+      redirect_to fee_structures_path, alert: "Daily charges are generated automatically for active students."
+      return
+    end
     student_ids = Array(invoice_params[:student_ids]).reject(&:blank?).uniq
     @invoice = Invoice.new(fee_structure: fee)
 
@@ -108,6 +112,6 @@ class InvoicesController < ApplicationController
 
   def load_options
     @students = current_school.students.active.includes(:classrooms).order(:last_name, :first_name)
-    @fees = current_school.fee_structures.includes(:academic_year).order(due_on: :desc)
+    @fees = current_school.fee_structures.one_time.includes(:academic_year).order(due_on: :desc)
   end
 end
