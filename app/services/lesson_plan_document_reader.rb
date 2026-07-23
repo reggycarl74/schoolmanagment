@@ -23,7 +23,7 @@ class LessonPlanDocumentReader
     return @note if text.blank?
 
     sections = sections_from(text)
-    @note.topic = sections[:topic].presence || @note.topic.presence || inferred_topic
+    @note.topic = sections[:topic].presence || inferred_topic if @note.topic.blank?
     %i[objectives materials content homework].each do |field|
       @note.public_send("#{field}=", sections[field]) if @note.public_send(field).blank? && sections[field].present?
     end

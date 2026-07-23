@@ -31,7 +31,9 @@ Rails.application.routes.draw do
     member { patch :advance }
   end
   resources :exam_results, only: %i[index new create]
-  resources :lesson_notes, only: %i[index new create edit update]
+  resources :lesson_notes, only: %i[index new create edit update] do
+    post :extract, on: :collection
+  end
   resources :grades, only: %i[edit update]
   resources :teaching_assignments, only: %i[index new create edit update destroy]
   resource :attendance_register, only: %i[show create]
