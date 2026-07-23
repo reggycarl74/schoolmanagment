@@ -4,13 +4,14 @@ require "uri"
 class SmsDeliveryService
   class DeliveryError < StandardError; end
 
-  def self.call(to:, body:)
-    new(to: to, body: body).call
+  def self.call(to:, body:, school: nil)
+    new(to: to, body: body, school:).call
   end
 
-  def initialize(to:, body:)
+  def initialize(to:, body:, school: nil)
     @to = to
     @body = body
+    @school = school
   end
 
   def call
@@ -26,19 +27,23 @@ class SmsDeliveryService
   private
 
   def validate_configuration!
-    missing = %w[TWILIO_ACCOUNT_SID TWILIO_AUTH_TOKEN TWILIO_FROM_NUMBER].select { |name| ENV[name].blank? }
-    raise DeliveryError, "Missing SMS configuration: #{missing.join(', ')}" if missing.any?
-    raise DeliveryError, "Guardian phone must use international format, for example +233..." unless @to.to_s.start_with?("+")
+    raise DeliveryError, "SMS delivery is disabled in Operations → SMS settings" if @school && !@school.sms_enabled?
+    raise DeliveryError, "SMS configuration is incomplete" if account_sid.blank? || auth_token.blank? || from_number.blank?
+    raise DeliveryError, "Phone number must use international format, for example +233..." unless @to.to_s.start_with?("+")
   end
 
   def uri
-    @uri ||= URI("https://api.twilio.com/2010-04-01/Accounts/#{ENV.fetch('TWILIO_ACCOUNT_SID')}/Messages.json")
+    @uri ||= URI("https://api.twilio.com/2010-04-01/Accounts/#{account_sid}/Messages.json")
   end
 
   def request
     Net::HTTP::Post.new(uri).tap do |post|
-      post.basic_auth(ENV.fetch("TWILIO_ACCOUNT_SID"), ENV.fetch("TWILIO_AUTH_TOKEN"))
-      post.set_form_data(To: @to, From: ENV.fetch("TWILIO_FROM_NUMBER"), Body: @body)
+      post.basic_auth(account_sid, auth_token)
+      post.set_form_data(To: @to, From: from_number, Body: @body)
     end
   end
+
+  def account_sid = @school&.sms_account_sid.presence || ENV["TWILIO_ACCOUNT_SID"]
+  def auth_token = @school&.sms_auth_token.presence || ENV["TWILIO_AUTH_TOKEN"]
+  def from_number = @school&.sms_from_number.presence || ENV["TWILIO_FROM_NUMBER"]
 end

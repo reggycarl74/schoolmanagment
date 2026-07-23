@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_07_23_120000) do
+ActiveRecord::Schema[8.0].define(version: 2026_07_23_130000) do
   create_table "academic_years", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.bigint "school_id", null: false
     t.string "name", null: false
@@ -438,6 +438,10 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_23_120000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.string "currency_code", default: "USD", null: false
+    t.boolean "sms_enabled", default: true, null: false
+    t.string "sms_account_sid"
+    t.text "sms_auth_token_ciphertext"
+    t.string "sms_from_number"
     t.index ["code"], name: "index_schools_on_code", unique: true
   end
 

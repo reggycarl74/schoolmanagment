@@ -1,4 +1,5 @@
 class School < ApplicationRecord
+  attr_reader :sms_auth_token
   has_one_attached :logo
   has_many :users, dependent: :destroy
   has_many :academic_years, dependent: :destroy
@@ -21,7 +22,30 @@ class School < ApplicationRecord
   validates :currency_code, inclusion: { in: %w[USD EUR GBP GHS NGN ZAR KES] }
   validate :acceptable_logo
 
+  def sms_auth_token
+    return if sms_auth_token_ciphertext.blank?
+
+    sms_encryptor.decrypt_and_verify(sms_auth_token_ciphertext)
+  rescue ActiveSupport::MessageEncryptor::InvalidMessage
+    nil
+  end
+
+  def sms_auth_token=(value)
+    return if value.blank?
+
+    self.sms_auth_token_ciphertext = sms_encryptor.encrypt_and_sign(value)
+  end
+
+  def sms_configured?
+    sms_account_sid.present? && sms_auth_token.present? && sms_from_number.present?
+  end
+
   private
+
+  def sms_encryptor
+    key = ActiveSupport::KeyGenerator.new(Rails.application.secret_key_base).generate_key("school-sms-settings", 32)
+    ActiveSupport::MessageEncryptor.new(key)
+  end
 
   def acceptable_logo
     return unless logo.attached?

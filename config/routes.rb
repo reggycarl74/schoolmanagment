@@ -71,6 +71,9 @@ Rails.application.routes.draw do
   resource :academic_year_rollover, only: %i[new create]
   resource :financial_report, only: :show
   resource :school_setting, only: %i[show update]
+  resource :sms_setting, only: %i[show update] do
+    post :test
+  end
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
   # Reveal health status on /up that returns 200 if the app boots with no exceptions, otherwise 500.

@@ -1,0 +1,16 @@
+<% content_for :title, "SMS configuration · SchoolOS" %>
+<%= render "shared/form_header", title: "SMS configuration", back_path: root_path %>
+<div class="mx-auto grid max-w-4xl gap-6 lg:grid-cols-3">
+  <%= form_with model: @school, url: sms_setting_path, class: "space-y-5 rounded-3xl border bg-white p-7 shadow-sm lg:col-span-2" do |form| %>
+    <div class="rounded-2xl bg-indigo-50 p-4 text-sm text-indigo-900"><strong>Twilio connection</strong><p class="mt-1 text-indigo-700">These credentials are used for timetable reminders, announcements, receipts, and billing messages. The auth token is encrypted before storage.</p></div>
+    <label class="flex items-center gap-3 rounded-xl border p-4"><%= form.check_box :sms_enabled %><span><strong class="block">Enable SMS delivery</strong><small class="text-slate-500">Turn this off to pause all outgoing SMS messages.</small></span></label>
+    <div><%= form.label :sms_account_sid, "Twilio Account SID", class: "field-label" %><%= form.text_field :sms_account_sid, autocomplete: "off", placeholder: "ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", class: "form-input" %></div>
+    <div><%= form.label :sms_auth_token, "Twilio Auth Token", class: "field-label" %><%= form.password_field :sms_auth_token, autocomplete: "new-password", placeholder: (@school.sms_auth_token.present? ? "Saved — leave blank to keep it" : "Enter auth token"), class: "form-input" %></div>
+    <div><%= form.label :sms_from_number, "Twilio sender number", class: "field-label" %><%= form.telephone_field :sms_from_number, placeholder: "+1234567890", class: "form-input" %><p class="mt-1 text-xs text-slate-500">Use international E.164 format beginning with +.</p></div>
+    <%= form.submit "Save SMS settings", class: "primary-button" %>
+  <% end %>
+  <aside class="space-y-5">
+    <div class="rounded-3xl border bg-white p-6 shadow-sm"><p class="text-xs font-bold uppercase tracking-wide text-slate-400">Status</p><p class="mt-3 text-lg font-black <%= @school.sms_configured? && @school.sms_enabled? ? 'text-emerald-700' : 'text-amber-700' %>"><%= @school.sms_configured? && @school.sms_enabled? ? "Ready to send" : "Needs configuration" %></p></div>
+    <%= form_with url: test_sms_setting_path, class: "rounded-3xl border bg-white p-6 shadow-sm" do |form| %><h2 class="font-bold">Send a test SMS</h2><p class="mt-1 text-xs text-slate-500">This sends one real message through your Twilio account.</p><%= form.telephone_field :test_phone, required: true, placeholder: "+233...", class: "form-input mt-4" %><%= form.submit "Send test", class: "mt-3 w-full rounded-xl bg-emerald-600 px-4 py-3 text-sm font-bold text-white hover:bg-emerald-700" %><% end %>
+  </aside>
+</div>

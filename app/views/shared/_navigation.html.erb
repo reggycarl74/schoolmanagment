@@ -3,7 +3,7 @@
   <% navigation_groups = [
     ["People", "👥", [["Students", students_path], ["Guardians", guardians_path], ["Teachers", teachers_path]]],
     ["Academics", "📚", [["Classes", classrooms_path], ["Subjects", subjects_path], ["Teacher assignments", teaching_assignments_path], ["All lesson plans", lesson_notes_path], ["Enter results", new_exam_result_path], ["Assessment workflow", assessments_path], ["Teacher remarks", report_card_remark_templates_path]]],
-    ["Operations", "🏫", [["Attendance", attendance_register_path], ["Attendance analytics", attendance_analytics_path], ["Timetable", timetable_entries_path], ["Announcements", announcements_path], ["Fee structures", fee_structures_path], ["Billing", invoices_path], ["Financial report", financial_report_path]]],
+    ["Operations", "🏫", [["Attendance", attendance_register_path], ["Attendance analytics", attendance_analytics_path], ["Timetable", timetable_entries_path], ["Announcements", announcements_path], ["SMS configuration", sms_setting_path], ["Fee structures", fee_structures_path], ["Billing", invoices_path], ["Financial report", financial_report_path]]],
     ["Administration", "⚙️", [["Users & passwords", admin_users_path], ["School settings", school_setting_path], ["Assessment settings", assessment_settings_path], ["Promotions", new_promotion_path], ["Academic year rollover", new_academic_year_rollover_path], ["Audit log", audit_events_path]]]
   ] %>
 <% elsif current_user.teacher? %>

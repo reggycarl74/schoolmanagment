@@ -8,7 +8,7 @@ class NotificationDeliveryJob < ApplicationJob
 
       NotificationMailer.delivery(delivery).deliver_now
     when "sms"
-      SmsDeliveryService.call(to: delivery.recipient.phone, body: delivery.body)
+      SmsDeliveryService.call(to: delivery.recipient.phone, body: delivery.body, school: delivery.school)
     else
       raise ArgumentError, "Unsupported notification channel: #{delivery.channel}"
     end
