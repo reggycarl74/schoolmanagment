@@ -1,1 +1,46 @@
-<%= form_with model: guardian, class: "mx-auto max-w-2xl space-y-5 rounded-2xl border bg-white p-8" do |f| %><%= render "shared/form_errors", object: guardian %><div class="grid grid-cols-2 gap-4"><%= f.text_field :first_name, placeholder: "First name", class: "form-input" %><%= f.text_field :last_name, placeholder: "Last name", class: "form-input" %></div><%= f.email_field :email, placeholder: "Email", class: "form-input" %><%= f.telephone_field :phone, placeholder: "Phone", class: "form-input" %><%= f.text_area :address, placeholder: "Address", class: "form-input" %><div><p class="field-label">Children</p><div class="mt-2 grid grid-cols-2 gap-2"><% @students.each do |student| %><label class="flex gap-2"><%= check_box_tag "student_ids[]", student.id, guardian.student_ids.include?(student.id) %><%= student.full_name %></label><% end %></div></div><%= f.submit class: "primary-button" %><% end %>
+<%= form_with model: guardian, class: "mx-auto max-w-5xl space-y-6" do |form| %>
+  <%= render "shared/form_errors", object: guardian %>
+
+  <section class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-8">
+    <div><p class="text-xs font-black uppercase tracking-widest text-indigo-600">Profile</p><h2 class="mt-1 text-xl font-black text-slate-900">Contact information</h2></div>
+    <div class="mt-6 grid gap-5 sm:grid-cols-2">
+      <div><%= form.label :first_name, class: "field-label" %><%= form.text_field :first_name, required: true, class: "form-input" %></div>
+      <div><%= form.label :last_name, class: "field-label" %><%= form.text_field :last_name, required: true, class: "form-input" %></div>
+      <div><%= form.label :email, class: "field-label" %><%= form.email_field :email, class: "form-input" %></div>
+      <div><%= form.label :occupation, class: "field-label" %><%= form.text_field :occupation, class: "form-input" %></div>
+      <div><%= form.label :phone, "Primary phone", class: "field-label" %><%= form.telephone_field :phone, required: true, class: "form-input" %></div>
+      <div><%= form.label :alternate_phone, class: "field-label" %><%= form.telephone_field :alternate_phone, class: "form-input" %></div>
+      <div><%= form.label :preferred_language, class: "field-label" %><%= form.text_field :preferred_language, class: "form-input" %></div>
+      <div><%= form.label :preferred_contact_method, class: "field-label" %><%= form.select :preferred_contact_method, Guardian.preferred_contact_methods.keys.map { |method| [method.humanize, method] }, {}, class: "form-input" %></div>
+      <div class="sm:col-span-2"><%= form.label :address, class: "field-label" %><%= form.text_area :address, rows: 3, class: "form-input" %></div>
+      <label class="flex items-center gap-3 rounded-2xl bg-emerald-50 p-4 text-sm font-bold text-emerald-800"><%= form.check_box :active, class: "h-5 w-5 rounded" %> Active family contact</label>
+    </div>
+  </section>
+
+  <section class="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm sm:p-8">
+    <div><p class="text-xs font-black uppercase tracking-widest text-violet-600">Children and permissions</p><h2 class="mt-1 text-xl font-black text-slate-900">Student relationships</h2><p class="mt-2 text-sm text-slate-500">Select each child, then define exactly what this guardian may access.</p></div>
+    <div class="mt-6 space-y-4">
+      <% @students.each do |student| %>
+        <% relationship = @relationship_by_student_id[student.id] || StudentGuardian.new(relationship: "Guardian", pickup_authorized: true, academic_access: true, attendance_access: true, billing_access: true, contact_allowed: true) %>
+        <% prefix = "guardian[relationships][#{student.id}]" %>
+        <details class="group rounded-2xl border border-slate-200 bg-slate-50 open:border-indigo-300 open:bg-indigo-50/40" <%= "open" if relationship.persisted? %>>
+          <summary class="flex cursor-pointer list-none items-center justify-between gap-4 p-4"><label class="flex cursor-pointer items-center gap-3 font-black text-slate-900" onclick="event.stopPropagation()"><%= check_box_tag "#{prefix}[selected]", "1", relationship.persisted?, class: "h-5 w-5 rounded border-slate-300 text-indigo-600" %><%= hidden_field_tag "#{prefix}[student_id]", student.id %><%= student.full_name %></label><span class="text-sm font-bold text-indigo-700 group-open:hidden">Configure</span><span class="hidden text-sm font-bold text-indigo-700 group-open:inline">Close</span></summary>
+          <div class="grid gap-4 border-t border-indigo-100 p-4 sm:grid-cols-3">
+            <div><label class="field-label">Relationship</label><%= text_field_tag "#{prefix}[relationship]", relationship.relationship, class: "form-input", placeholder: "Mother, father, aunt…" %></div>
+            <div><label class="field-label">Emergency priority</label><%= number_field_tag "#{prefix}[emergency_priority]", relationship.emergency_priority, min: 1, class: "form-input", placeholder: "1" %></div>
+            <div class="sm:col-span-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <% { primary_contact: "Primary contact", emergency_contact: "Emergency contact", lives_with_student: "Lives with student", financially_responsible: "Financially responsible", pickup_authorized: "Authorized pickup", contact_allowed: "Contact allowed", academic_access: "Academic reports", attendance_access: "Attendance access", billing_access: "Billing access" }.each do |field, label| %>
+                <label class="flex items-center gap-3 rounded-xl bg-white p-3 text-sm font-semibold text-slate-700"><%= hidden_field_tag "#{prefix}[#{field}]", "0" %><%= check_box_tag "#{prefix}[#{field}]", "1", relationship.public_send(field), class: "h-4 w-4 rounded" %><%= label %></label>
+              <% end %>
+            </div>
+            <div class="sm:col-span-3"><label class="field-label">Pickup instructions</label><%= text_area_tag "#{prefix}[pickup_notes]", relationship.pickup_notes, rows: 2, class: "form-input", placeholder: "Approved collection arrangements or identification requirements" %></div>
+            <div class="sm:col-span-3"><label class="field-label text-red-700">Custody/contact restrictions</label><%= text_area_tag "#{prefix}[custody_restrictions]", relationship.custody_restrictions, rows: 2, class: "form-input border-red-200", placeholder: "Sensitive—visible only to authorized staff" %></div>
+          </div>
+        </details>
+      <% end %>
+    </div>
+  </section>
+
+  <section class="rounded-3xl border border-amber-200 bg-amber-50 p-5 sm:p-8"><%= form.label :private_notes, "Private staff notes", class: "field-label text-amber-900" %><%= form.text_area :private_notes, rows: 3, class: "form-input", placeholder: "Internal notes—never shown in the guardian portal" %></section>
+  <div class="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end"><%= link_to "Cancel", guardian.persisted? ? guardian_path(guardian) : guardians_path, class: "rounded-xl px-5 py-3 text-center font-bold text-slate-600 hover:bg-slate-100" %><%= form.submit guardian.persisted? ? "Save guardian" : "Add guardian", class: "primary-button" %></div>
+<% end %>

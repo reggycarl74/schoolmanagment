@@ -17,10 +17,19 @@ module SchoolAccess
       current_school.students.joins(:enrollments)
         .where(enrollments: { classroom_id: current_user.teacher&.accessible_classrooms&.select(:id), status: Enrollment.statuses[:enrolled] })
         .distinct
-    when "parent" then current_user.guardian&.students || Student.none
+    when "parent" then accessible_students_with_guardian_permission(:contact_allowed)
     when "student" then current_school.students.where(id: current_user.student_id)
     else current_school.students
     end
+  end
+
+  def accessible_students_with_guardian_permission(permission)
+    return accessible_students unless current_user.parent?
+    return Student.none unless current_user.guardian&.active?
+
+    current_school.students.joins(:student_guardians).where(
+      student_guardians: { guardian_id: current_user.guardian_id, contact_allowed: true, permission => true }
+    ).distinct
   end
 
   def require_administrator

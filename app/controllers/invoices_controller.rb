@@ -75,7 +75,7 @@ class InvoicesController < ApplicationController
 
   def send_reminder
     invoice = school_invoice
-    invoice.student.guardians.find_each do |guardian|
+    invoice.student.guardians.merge(StudentGuardian.for_billing).where(active: true).find_each do |guardian|
       delivery = NotificationDelivery.create!(school: current_school, recipient: guardian, channel: :email, subject: "Fee payment reminder", body: "#{invoice.number} for #{invoice.student.full_name} has an outstanding balance of #{invoice.balance} #{current_school.currency_code}, due #{invoice.due_on}.")
       NotificationDeliveryJob.perform_later(delivery)
     end
@@ -94,7 +94,8 @@ class InvoicesController < ApplicationController
   def invoice_scope
     return Invoice.joins(:student).where(students: { school_id: current_school.id }) unless current_user.parent? || current_user.student?
 
-    Invoice.where(student_id: accessible_students.select(:id))
+    students = current_user.parent? ? accessible_students_with_guardian_permission(:billing_access) : accessible_students
+    Invoice.where(student_id: students.select(:id))
   end
 
   def school_invoice = Invoice.joins(:student).where(students: { school_id: current_school.id }).find(params[:id])

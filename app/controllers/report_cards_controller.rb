@@ -1,6 +1,7 @@
 class ReportCardsController < ApplicationController
   def show
-    @student = accessible_students.find(params[:id])
+    students = current_user.parent? ? accessible_students_with_guardian_permission(:academic_access) : accessible_students
+    @student = students.find(params[:id])
     @terms = @student.enrollments.includes(classroom: { academic_year: :terms }).flat_map { |entry| entry.classroom.academic_year.terms }.uniq
     @term = @terms.find { |term| term.id == params[:term_id].to_i } || @terms.max_by(&:starts_on)
     @grades = grades_for_term

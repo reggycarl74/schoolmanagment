@@ -13,6 +13,7 @@ class School < ApplicationRecord
   has_many :announcements, dependent: :destroy
   has_many :fee_structures, dependent: :destroy
   has_many :audit_events, dependent: :destroy
+  has_many :notification_deliveries, dependent: :destroy
   has_many :report_card_remark_templates, dependent: :destroy
 
   validates :name, :code, :time_zone, presence: true

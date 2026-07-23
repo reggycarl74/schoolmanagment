@@ -17,7 +17,12 @@ Rails.application.routes.draw do
     member { get :assessments }
     collection { post :import }
   end
-  resources :guardians, only: %i[index new create edit update]
+  resources :guardians, only: %i[index show new create edit update] do
+    member do
+      post :invite
+      patch :toggle_portal_access
+    end
+  end
   resources :teachers, only: %i[index new create]
   resources :classrooms, only: %i[index new create]
   resources :subjects, only: %i[index new create]

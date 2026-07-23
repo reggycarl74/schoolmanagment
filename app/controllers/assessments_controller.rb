@@ -28,7 +28,7 @@ class AssessmentsController < ApplicationController
 
   def notify_publication(assessment)
     assessment.course_section.classroom.students.includes(:guardians).find_each do |student|
-      student.guardians.each do |guardian|
+      student.guardians.merge(StudentGuardian.for_academics).where(active: true).each do |guardian|
         delivery = NotificationDelivery.create!(school: current_school, recipient: guardian, channel: :email, subject: "Results published", body: "New #{assessment.title} results are available for #{student.full_name}.")
         NotificationDeliveryJob.perform_later(delivery)
       end

@@ -33,7 +33,7 @@ class AttendanceRegistersController < ApplicationController
   end
 
   def notify_absence(record)
-    record.enrollment.student.guardians.each do |guardian|
+    record.enrollment.student.guardians.merge(StudentGuardian.for_attendance).where(active: true).each do |guardian|
       delivery = NotificationDelivery.create!(school: current_school, recipient: guardian, channel: :email, subject: "Student absence", body: "#{record.enrollment.student.full_name} was marked absent on #{record.attendance_date}.")
       NotificationDeliveryJob.perform_later(delivery)
     end

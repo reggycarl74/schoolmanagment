@@ -55,11 +55,13 @@ class StudentsController < ResourceIndexController
   end
 
   def assessments
-    @student = accessible_students.find(params[:id])
+    students = current_user.parent? ? accessible_students_with_guardian_permission(:academic_access) : accessible_students
+    @student = students.find(params[:id])
     @grades = Grade.joins(:assessment, enrollment: :student)
       .where(enrollments: { student_id: @student.id })
       .includes(:enrollment, assessment: { course_section: %i[classroom subject term] })
       .order("assessments.due_on DESC", "assessments.title")
+    @grades = @grades.where(assessments: { status: :published }) if current_user.parent? || current_user.student?
   end
 
   private

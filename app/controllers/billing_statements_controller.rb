@@ -19,7 +19,8 @@ class BillingStatementsController < ApplicationController
   private
 
   def set_student
-    @student = accessible_students.find(params[:student_id])
+    students = current_user.parent? ? accessible_students_with_guardian_permission(:billing_access) : accessible_students
+    @student = students.find(params[:student_id])
   end
 
   def ledger_entries

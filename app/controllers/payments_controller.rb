@@ -35,7 +35,8 @@ class PaymentsController < ApplicationController
 
   def authorize_billing
     return if current_user.administrator? || current_user.accountant?
-    return if accessible_students.where(id: school_invoice.student_id).exists?
+    students = current_user.parent? ? accessible_students_with_guardian_permission(:billing_access) : accessible_students
+    return if students.where(id: school_invoice.student_id).exists?
 
     redirect_to root_path, alert: "You do not have permission to view that receipt."
   end
@@ -49,7 +50,7 @@ class PaymentsController < ApplicationController
   end
 
   def notify_guardians(payment)
-    payment.invoice.student.guardians.find_each do |guardian|
+    payment.invoice.student.guardians.merge(StudentGuardian.for_billing).where(active: true).find_each do |guardian|
       delivery = NotificationDelivery.create!(school: current_school, recipient: guardian, channel: :email, subject: "Payment received", body: "Receipt #{payment.receipt_number}: received #{payment.amount} #{current_school.currency_code} for #{payment.invoice.student.full_name}. Remaining balance: #{payment.invoice.balance}.")
       NotificationDeliveryJob.perform_later(delivery)
     end
