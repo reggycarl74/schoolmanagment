@@ -9,6 +9,12 @@ fi
 # Render needs the HTTP port to open promptly. Prepare the remote database in a
 # bounded background task so a slow TiDB migration cannot block Puma startup.
 if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
+  # The Puma plugin starts Solid Queue before the background db:prepare has
+  # created its tables. Run it independently after preparation instead so a
+  # queue startup failure cannot take the Render web process down.
+  run_solid_queue="${SOLID_QUEUE_IN_PUMA:-false}"
+  export SOLID_QUEUE_IN_PUMA=false
+
   (
     echo "==> Preparing database in the background..."
     if timeout "${DB_PREPARE_TIMEOUT:-240}" ./bin/rails db:prepare; then
@@ -22,6 +28,11 @@ if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
         else
           echo "==> Demo data seeding failed or timed out; web service remains available."
         fi
+      fi
+
+      if [ "${run_solid_queue}" = "true" ]; then
+        echo "==> Starting Solid Queue after database preparation..."
+        exec ./bin/jobs
       fi
     else
       echo "==> Database preparation failed or timed out; check the database logs."
