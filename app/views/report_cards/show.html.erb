@@ -1,11 +1,23 @@
 <% content_for :title, "Report card · SchoolOS" %>
-<div class="print:hidden"><%= link_to "← Student assessments", assessments_student_path(@student), class: "text-sm font-semibold text-indigo-700" %></div>
+<div class="flex flex-col gap-4 print:hidden sm:flex-row sm:items-end sm:justify-between">
+  <%= link_to "← Student assessments", assessments_student_path(@student), class: "text-sm font-semibold text-indigo-700" %>
+  <%= form_with url: report_card_path(@student), method: :get, class: "flex w-full items-end gap-3 sm:w-auto" do |form| %>
+    <div class="min-w-64">
+      <%= form.label :term_id, "Report-card term", class: "field-label" %>
+      <%= form.select :term_id,
+        options_for_select(@terms.sort_by(&:starts_on).reverse.map { |term| ["#{term.academic_year.name} · #{term.name}", term.id] }, @term&.id),
+        {},
+        class: "form-input" %>
+    </div>
+    <%= form.submit "View", class: "primary-button" %>
+  <% end %>
+</div>
 <div class="mx-auto mt-5 max-w-4xl rounded-2xl border bg-white p-8 shadow-sm print:border-0 print:shadow-none">
-  <div class="text-center"><% if current_school.logo.attached? %><%= image_tag current_school.logo, class: "mx-auto mb-4 h-24 w-24 object-contain", alt: "#{current_school.name} logo" %><% end %><h1 class="text-3xl font-bold"><%= current_school.name %></h1><% if current_school.address.present? %><p class="mt-1 text-sm text-slate-500"><%= current_school.address %></p><% end %><p class="mt-2 text-slate-500">Term report card</p><h2 class="mt-5 text-xl font-semibold"><%= @student.full_name %> · <%= @term&.name %></h2></div>
+  <div class="text-center"><% if current_school.logo.attached? %><%= image_tag current_school.logo, class: "mx-auto mb-4 h-24 w-24 object-contain", alt: "#{current_school.name} logo" %><% end %><h1 class="text-3xl font-bold"><%= current_school.name %></h1><% if current_school.address.present? %><p class="mt-1 text-sm text-slate-500"><%= current_school.address %></p><% end %><p class="mt-2 text-slate-500">Term report card</p><h2 class="mt-5 text-xl font-semibold"><%= @student.full_name %></h2><% if @term %><div class="mx-auto mt-4 grid max-w-xl gap-3 rounded-2xl bg-slate-50 p-4 text-left sm:grid-cols-3"><div><p class="text-xs font-bold uppercase tracking-wide text-slate-400">Academic year</p><p class="mt-1 font-bold text-slate-800"><%= @term.academic_year.name %></p></div><div><p class="text-xs font-bold uppercase tracking-wide text-slate-400">Selected term</p><p class="mt-1 font-bold text-indigo-700"><%= @term.name %></p></div><div><p class="text-xs font-bold uppercase tracking-wide text-slate-400">Reopening date</p><p class="mt-1 font-bold text-slate-800"><%= @term.reopening_date&.to_fs(:long) || "Not set" %></p></div></div><% end %></div>
   <table class="mt-8 w-full text-left"><thead class="bg-slate-100"><tr><th class="p-3">Subject</th><th class="p-3">Score</th><th class="p-3">Percentage</th><th class="p-3">Grade</th><th class="p-3">Remark</th></tr></thead><tbody class="divide-y"><% @subject_results.each do |row| %><tr><td class="p-3 font-medium"><%= row[:subject].name %></td><td class="p-3"><%= row[:earned] %> / <%= row[:possible] %></td><td class="p-3"><%= number_to_percentage(row[:percentage], precision: 1) %></td><td class="p-3 font-bold"><%= row[:scale]&.letter || "—" %></td><td class="p-3"><%= row[:scale]&.remark %></td></tr><% end %></tbody></table>
   <div class="mt-8 grid grid-cols-2 gap-4 rounded-xl bg-slate-50 p-5"><% AttendanceRecord.statuses.each_key do |status| %><p><strong><%= status.humanize %>:</strong> <%= @attendance[status] || 0 %></p><% end %></div>
   <section class="mt-8"><h3 class="text-lg font-bold">Teacher comments</h3><% @comments.each do |comment| %><div class="mt-3 rounded-xl border p-4"><p class="text-xs font-semibold uppercase text-slate-500"><%= comment.kind.humanize %> · <%= comment.approved? ? "Approved" : "Awaiting approval" %></p><p class="mt-2"><%= comment.body %></p><p class="mt-2 text-xs text-slate-500"><%= comment.author.full_name %></p><% if current_user.administrator? && !comment.approved? %><%= button_to "Approve", report_card_comment_path(comment, approved: true), method: :patch, class: "mt-3 text-sm font-semibold text-emerald-700" %><% end %></div><% end %></section>
-  <% if @term&.reopening_date %><div class="mt-8 rounded-xl border-2 border-indigo-200 bg-indigo-50 p-5 text-center"><p class="text-sm font-semibold uppercase tracking-wide text-indigo-700">School reopens</p><p class="mt-1 text-xl font-bold text-indigo-950"><%= @term.reopening_date.to_fs(:long) %></p></div><% end %>
+  <% if @term %><div class="mt-8 rounded-xl border-2 border-indigo-200 bg-indigo-50 p-5 text-center"><p class="text-sm font-semibold uppercase tracking-wide text-indigo-700">School reopens</p><p class="mt-1 text-xl font-bold text-indigo-950"><%= @term.reopening_date&.to_fs(:long) || "Reopening date has not been set" %></p></div><% end %>
   <% if @term && (current_user.teacher? || current_user.administrator? || current_user.registrar?) %>
     <%= form_with model: ReportCardComment.new, class: "mt-8 overflow-hidden rounded-2xl border border-indigo-200 bg-white shadow-sm print:hidden", data: { controller: "remark-picker" } do |form| %>
       <%= form.hidden_field :student_id, value: @student.id %><%= form.hidden_field :term_id, value: @term.id %>
