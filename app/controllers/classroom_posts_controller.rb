@@ -56,9 +56,9 @@ class ClassroomPostsController < ApplicationController
   end
 
   def require_classroom_portal_access
-    return if current_user.administrator? || current_user.teacher? || current_user.student?
+    return if current_user.administrator? || current_user.teacher? || current_user.student? || current_user.parent?
 
-    redirect_to root_path, alert: "The classroom portal is available to teachers and students."
+    redirect_to root_path, alert: "The classroom portal is available to teachers, students, and guardians."
   end
 
   def require_teacher_or_administrator

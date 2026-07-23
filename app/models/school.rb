@@ -16,6 +16,7 @@ class School < ApplicationRecord
   has_many :audit_events, dependent: :destroy
   has_many :notification_deliveries, dependent: :destroy
   has_many :report_card_remark_templates, dependent: :destroy
+  has_many :promotion_batches, dependent: :restrict_with_error
 
   validates :name, :code, :time_zone, presence: true
   validates :code, uniqueness: true

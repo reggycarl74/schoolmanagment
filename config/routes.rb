@@ -38,6 +38,8 @@ Rails.application.routes.draw do
   resources :teaching_assignments, only: %i[index new create edit update destroy]
   resource :attendance_register, only: %i[show create]
   resource :promotion, only: %i[new create]
+  post "promotions/:id/approve", to: "promotions#approve", as: :approve_promotion
+  post "promotions/:id/reverse", to: "promotions#reverse", as: :reverse_promotion
   resources :report_cards, only: :show
   resources :timetable_entries, only: %i[index new create destroy]
   resources :announcements, only: %i[index new create]
@@ -53,7 +55,10 @@ Rails.application.routes.draw do
       post :send_reminder
     end
     resources :payments, only: %i[create show] do
-      member { patch :reverse }
+      member do
+        patch :reverse
+        patch :reconcile
+      end
     end
     resources :invoice_line_items, only: %i[create destroy]
     resources :billing_adjustments, only: :create
@@ -70,6 +75,8 @@ Rails.application.routes.draw do
   resource :attendance_analytics, only: :show
   resource :academic_year_rollover, only: %i[new create]
   resource :financial_report, only: :show
+  resource :academic_report, only: :show
+  resource :family_portal, only: :show
   resource :school_setting, only: %i[show update]
   resource :sms_setting, only: %i[show update] do
     post :test

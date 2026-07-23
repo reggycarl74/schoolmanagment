@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_07_23_130000) do
+ActiveRecord::Schema[8.0].define(version: 2026_07_23_140000) do
   create_table "academic_years", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.bigint "school_id", null: false
     t.string "name", null: false
@@ -103,6 +103,10 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_23_130000) do
     t.bigint "recorded_by_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.time "arrived_at"
+    t.time "departed_at"
+    t.string "absence_reason"
+    t.boolean "guardian_notified", default: false, null: false
     t.index ["enrollment_id", "attendance_date"], name: "index_attendance_records_on_enrollment_id_and_attendance_date", unique: true
     t.index ["enrollment_id"], name: "index_attendance_records_on_enrollment_id"
     t.index ["recorded_by_id"], name: "index_attendance_records_on_recorded_by_id"
@@ -392,11 +396,50 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_23_130000) do
     t.datetime "reversed_at"
     t.bigint "reversed_by_id"
     t.text "reversal_reason"
+    t.datetime "reconciled_at"
+    t.bigint "reconciled_by_id"
+    t.string "reconciliation_reference"
     t.index ["invoice_id"], name: "index_payments_on_invoice_id"
     t.index ["receipt_number"], name: "index_payments_on_receipt_number", unique: true
     t.index ["recorded_by_id"], name: "index_payments_on_recorded_by_id"
+    t.index ["reconciled_by_id"], name: "index_payments_on_reconciled_by_id"
     t.index ["reference"], name: "index_payments_on_reference", unique: true
     t.index ["reversed_by_id"], name: "index_payments_on_reversed_by_id"
+  end
+
+  create_table "promotion_batches", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
+    t.bigint "school_id", null: false
+    t.bigint "from_classroom_id", null: false
+    t.bigint "to_classroom_id", null: false
+    t.bigint "initiated_by_id", null: false
+    t.bigint "approved_by_id"
+    t.bigint "reversed_by_id"
+    t.integer "status", default: 0, null: false
+    t.text "reason"
+    t.datetime "approved_at"
+    t.datetime "reversed_at"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["approved_by_id"], name: "index_promotion_batches_on_approved_by_id"
+    t.index ["from_classroom_id"], name: "index_promotion_batches_on_from_classroom_id"
+    t.index ["initiated_by_id"], name: "index_promotion_batches_on_initiated_by_id"
+    t.index ["reversed_by_id"], name: "index_promotion_batches_on_reversed_by_id"
+    t.index ["school_id"], name: "index_promotion_batches_on_school_id"
+    t.index ["to_classroom_id"], name: "index_promotion_batches_on_to_classroom_id"
+  end
+
+  create_table "promotion_items", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
+    t.bigint "promotion_batch_id", null: false
+    t.bigint "student_id", null: false
+    t.bigint "source_enrollment_id", null: false
+    t.bigint "destination_enrollment_id"
+    t.datetime "created_at", null: false
+    t.datetime "updated_at", null: false
+    t.index ["destination_enrollment_id"], name: "index_promotion_items_on_destination_enrollment_id"
+    t.index ["promotion_batch_id", "student_id"], name: "index_promotion_items_on_promotion_batch_id_and_student_id", unique: true
+    t.index ["promotion_batch_id"], name: "index_promotion_items_on_promotion_batch_id"
+    t.index ["source_enrollment_id"], name: "index_promotion_items_on_source_enrollment_id"
+    t.index ["student_id"], name: "index_promotion_items_on_student_id"
   end
 
   create_table "report_card_comments", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
@@ -640,7 +683,18 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_23_130000) do
   add_foreign_key "payment_installments", "invoices"
   add_foreign_key "payments", "invoices"
   add_foreign_key "payments", "users", column: "recorded_by_id"
+  add_foreign_key "payments", "users", column: "reconciled_by_id"
   add_foreign_key "payments", "users", column: "reversed_by_id"
+  add_foreign_key "promotion_batches", "classrooms", column: "from_classroom_id"
+  add_foreign_key "promotion_batches", "classrooms", column: "to_classroom_id"
+  add_foreign_key "promotion_batches", "schools"
+  add_foreign_key "promotion_batches", "users", column: "approved_by_id"
+  add_foreign_key "promotion_batches", "users", column: "initiated_by_id"
+  add_foreign_key "promotion_batches", "users", column: "reversed_by_id"
+  add_foreign_key "promotion_items", "enrollments", column: "destination_enrollment_id"
+  add_foreign_key "promotion_items", "enrollments", column: "source_enrollment_id"
+  add_foreign_key "promotion_items", "promotion_batches"
+  add_foreign_key "promotion_items", "students"
   add_foreign_key "report_card_comments", "students"
   add_foreign_key "report_card_comments", "terms"
   add_foreign_key "report_card_comments", "users", column: "author_id"

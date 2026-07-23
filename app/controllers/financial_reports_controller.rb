@@ -10,6 +10,8 @@ class FinancialReportsController < ApplicationController
       .active
     @invoiced = @invoices.sum(:amount)
     @collected = @payments.sum(:amount)
+    @reconciled = @payments.where.not(reconciled_at: nil).sum(:amount)
+    @unreconciled = @payments.where(reconciled_at: nil).sum(:amount)
     open_invoices = @invoices.where.not(status: :cancelled).includes(:payments, :billing_adjustments, :student)
     @outstanding = open_invoices.sum(&:balance)
     @aging = { "Current" => 0.to_d, "1–30 days" => 0.to_d, "31–60 days" => 0.to_d, "61–90 days" => 0.to_d, "90+ days" => 0.to_d }

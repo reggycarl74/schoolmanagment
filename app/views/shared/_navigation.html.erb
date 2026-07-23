@@ -2,7 +2,7 @@
   <% role_label = "Admin"; role_colors = "bg-indigo-50 text-indigo-700" %>
   <% navigation_groups = [
     ["People", "👥", [["Students", students_path], ["Guardians", guardians_path], ["Teachers", teachers_path]]],
-    ["Academics", "📚", [["Classes", classrooms_path], ["Subjects", subjects_path], ["Teacher assignments", teaching_assignments_path], ["All lesson plans", lesson_notes_path], ["Enter results", new_exam_result_path], ["Assessment workflow", assessments_path], ["Teacher remarks", report_card_remark_templates_path]]],
+    ["Academics", "📚", [["Classes", classrooms_path], ["Subjects", subjects_path], ["Teacher assignments", teaching_assignments_path], ["All lesson plans", lesson_notes_path], ["Enter results", new_exam_result_path], ["Assessment workflow", assessments_path], ["Academic reports", academic_report_path], ["Teacher remarks", report_card_remark_templates_path]]],
     ["Operations", "🏫", [["Attendance", attendance_register_path], ["Attendance analytics", attendance_analytics_path], ["Timetable", timetable_entries_path], ["Announcements", announcements_path], ["SMS configuration", sms_setting_path], ["Fee structures", fee_structures_path], ["Billing", invoices_path], ["Financial report", financial_report_path]]],
     ["Administration", "⚙️", [["Users & passwords", admin_users_path], ["School settings", school_setting_path], ["Assessment settings", assessment_settings_path], ["Promotions", new_promotion_path], ["Academic year rollover", new_academic_year_rollover_path], ["Audit log", audit_events_path]]]
   ] %>
@@ -11,7 +11,7 @@
   <% navigation_groups = [
     ["My Students", "👥", [["Student list", students_path], ["My classes", classrooms_path], ["Promote students", new_promotion_path]]],
     ["Teaching", "📚", [["My subjects", subjects_path], ["Classroom", classroom_posts_path], ["Enter results", new_exam_result_path], ["Lesson plans", lesson_notes_path]]],
-    ["Assessment", "📝", [["Assessment workflow", assessments_path], ["Teacher remarks", report_card_remark_templates_path], ["Attendance analytics", attendance_analytics_path]]],
+    ["Assessment", "📝", [["Assessment workflow", assessments_path], ["Academic reports", academic_report_path], ["Teacher remarks", report_card_remark_templates_path], ["Attendance analytics", attendance_analytics_path]]],
     ["Schedule", "📅", [["Take attendance", attendance_register_path], ["My timetable", timetable_entries_path], ["School news", announcements_path]]]
   ] %>
 <% elsif current_user.registrar? %>
@@ -32,7 +32,7 @@
   ] %>
 <% else %>
   <% role_label = current_user.role.humanize; role_colors = "bg-violet-50 text-violet-700" %>
-  <% profile_links = current_user.student? && current_user.student ? [["My profile", student_path(current_user.student)], ["My classroom", classroom_posts_path], ["My assessments", assessments_student_path(current_user.student)]] : [["My children", students_path]] %>
+  <% profile_links = current_user.student? && current_user.student ? [["Dashboard", family_portal_path], ["My profile", student_path(current_user.student)], ["My classroom", classroom_posts_path], ["My assessments", assessments_student_path(current_user.student)]] : [["Family dashboard", family_portal_path], ["My children", students_path]] %>
   <% navigation_groups = [
     ["Profile", "👤", profile_links],
     ["Academics", "📚", [["Assessments", (current_user.student? && current_user.student ? assessments_student_path(current_user.student) : students_path)]]],

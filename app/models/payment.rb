@@ -2,6 +2,7 @@ class Payment < ApplicationRecord
   belongs_to :invoice
   belongs_to :recorded_by, class_name: "User", optional: true
   belongs_to :reversed_by, class_name: "User", optional: true
+  belongs_to :reconciled_by, class_name: "User", optional: true
   has_many :notification_deliveries, as: :source, dependent: :nullify
   enum :payment_method, { cash: 0, bank_transfer: 1, card: 2, mobile_money: 3 }
   before_validation :assign_receipt_number, on: :create
@@ -14,6 +15,7 @@ class Payment < ApplicationRecord
   validate :invoice_accepts_payments, on: :create
 
   def reversed? = reversed_at.present?
+  def reconciled? = reconciled_at.present?
 
   private
 

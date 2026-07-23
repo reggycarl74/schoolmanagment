@@ -1,5 +1,6 @@
 class PaymentsController < ApplicationController
   before_action :require_finance, only: :create
+  before_action :require_finance, only: :reconcile
   before_action :require_administrator, only: :reverse
   before_action :authorize_billing, only: :show
 
@@ -30,6 +31,17 @@ class PaymentsController < ApplicationController
     @invoice.refresh_status!
     audit(payment, "payment_reversed")
     redirect_to invoice_path(@invoice), notice: "Payment #{payment.reference} was reversed without deleting its audit history."
+  end
+
+  def reconcile
+    @invoice = school_invoice
+    payment = @invoice.payments.active.find(params[:id])
+    reference = params[:reconciliation_reference].to_s.strip
+    return redirect_to(invoice_payment_path(@invoice, payment), alert: "Provide a bank, cashbook, or settlement reference.") if reference.blank?
+
+    payment.update!(reconciled_at: Time.current, reconciled_by: current_user, reconciliation_reference: reference)
+    audit(payment, "payment_reconciled")
+    redirect_to invoice_payment_path(@invoice, payment), notice: "Payment was reconciled successfully."
   end
 
   private
