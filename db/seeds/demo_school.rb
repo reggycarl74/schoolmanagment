@@ -136,6 +136,53 @@ students = student_names.map.with_index do |(first_name, last_name, gender), ind
   student
 end
 
+# JHS demo data exercises the purple 30/70 report form from end to end.
+jhs_grade_levels = [ "JHS 1", "JHS 2", "JHS 3" ].map.with_index(7) do |name, position|
+  grade = school.grade_levels.find_or_initialize_by(name:)
+  grade.update!(position:)
+  grade
+end
+
+jhs_classrooms = jhs_grade_levels.each_with_index.map do |grade_level, index|
+  classroom = school.classrooms.find_or_initialize_by(academic_year:, name: grade_level.name)
+  classroom.assign_attributes(
+    grade_level:,
+    homeroom_teacher: teachers.fetch((index + 2) % teachers.length),
+    capacity: 48,
+    report_template: :jhs_detailed
+  )
+  classroom.save!
+  classroom
+end
+
+classrooms.last.update!(report_template: :compact_summary)
+classrooms.concat(jhs_classrooms)
+
+jhs_student_names = [
+  [ "Emmanuel", "Mensah", :male ], [ "Ama", "Serwaa", :female ],
+  [ "Kwame", "Boateng", :male ], [ "Felicia", "Adjei", :female ],
+  [ "Daniel", "Agyemang", :male ], [ "Priscilla", "Mensah", :female ],
+  [ "Adwoa", "Asante", :female ], [ "Kofi", "Owusu", :male ],
+  [ "Mabel", "Ofori", :female ], [ "Yaw", "Amankwah", :male ],
+  [ "Nana", "Gyasi", :male ], [ "Akua", "Frimpong", :female ],
+  [ "Joseph", "Tetteh", :male ], [ "Eunice", "Addo", :female ],
+  [ "Samuel", "Darko", :male ], [ "Grace", "Nyarko", :female ],
+  [ "Michael", "Amoah", :male ], [ "Esther", "Badu", :female ]
+]
+
+jhs_students = jhs_student_names.map.with_index do |(first_name, last_name, gender), index|
+  classroom = jhs_classrooms.fetch(index / 6)
+  student = school.students.find_or_initialize_by(admission_number: format("JHS%04d", index + 1))
+  student.assign_attributes(first_name:, last_name:, gender:, date_of_birth: Date.new(2012 - (index / 6), (index % 12) + 1, ((index * 2) % 25) + 1), admitted_on: academic_year.starts_on, status: :active)
+  student.save!
+  Enrollment.find_or_initialize_by(student:, classroom:).tap do |enrollment|
+    enrollment.assign_attributes(enrolled_on: academic_year.starts_on, status: :enrolled)
+    enrollment.save!
+  end
+  student
+end
+students.concat(jhs_students)
+
 assessment_components = [
   [ "Mid Term", 20, :exam ],
   [ "Class Work", 10, :assignment ],
@@ -420,8 +467,8 @@ lesson_content = {
 }
 
 seeded_lesson_plans = 0
-CourseSection.joins(:classroom).where(classrooms: { school_id: school.id }, term: terms.first).includes(:subject, :teachers).find_each.with_index do |course, index|
-  teacher = course.teachers.first
+CourseSection.joins(:classroom).where(classrooms: { school_id: school.id }, term: terms.first).includes(:subject, :classroom).find_each.with_index do |course, index|
+  teacher = TeachingAssignment.find_by(classroom: course.classroom, subject: course.subject)&.teacher
   next unless teacher
 
   lessons = lesson_content.fetch(course.subject.code)
@@ -451,8 +498,8 @@ CourseSection.joins(:classroom).where(classrooms: { school_id: school.id }, term
   end
 end
 
-CourseSection.joins(:classroom).where(classrooms: { school_id: school.id }, term: terms.first).includes(:teachers).find_each.with_index do |course, index|
-  teacher = course.teachers.first
+CourseSection.joins(:classroom).where(classrooms: { school_id: school.id }, term: terms.first).includes(:subject, :classroom).find_each.with_index do |course, index|
+  teacher = TeachingAssignment.find_by(classroom: course.classroom, subject: course.subject)&.teacher
   next unless teacher
 
   entry = TimetableEntry.find_or_initialize_by(course_section: course, weekday: (index % 5) + 1, period: (index % 5) + 1)

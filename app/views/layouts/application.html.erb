@@ -5,41 +5,32 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
-    <%= csrf_meta_tags %>
-    <%= csp_meta_tag %>
-
-    <%= yield :head %>
-
-    <%# Enable PWA manifest for installable apps (make sure to enable in config/routes.rb too!) %>
-    <%#= tag.link rel: "manifest", href: pwa_manifest_path(format: :json) %>
-
-    <link rel="icon" href="/icon.png" type="image/png">
-    <link rel="icon" href="/icon.svg" type="image/svg+xml">
-    <link rel="apple-touch-icon" href="/icon.png">
-
-    <%# Includes all stylesheet files in app/assets/stylesheets %>
-    <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %>
-    <%= javascript_importmap_tags %>
+    <%= csrf_meta_tags %><%= csp_meta_tag %><%= yield :head %>
+    <link rel="icon" href="/icon.png" type="image/png"><link rel="apple-touch-icon" href="/icon.png">
+    <%= stylesheet_link_tag "tailwind", "data-turbo-track": "reload" %><%= javascript_importmap_tags %>
   </head>
-
-  <body class="min-h-screen bg-slate-50 text-slate-800 antialiased">
+  <body class="min-h-screen bg-[#f3f1ff] text-slate-800 antialiased" data-controller="mobile-menu">
     <% if authenticated? %>
-    <header class="sticky top-0 z-50 border-b border-white/60 bg-white/90 shadow-sm backdrop-blur-xl" data-controller="mobile-menu">
-      <nav class="relative mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
-        <%= link_to root_path, class: "flex items-center gap-3" do %><span class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-600 to-violet-600 text-lg font-black text-white shadow-lg shadow-indigo-200"><% if current_school.logo.attached? %><%= image_tag current_school.logo, class: "h-full w-full object-contain bg-white p-1", alt: "" %><% else %>S<% end %></span><span><strong class="block text-lg leading-none text-slate-900">SchoolOS</strong><small class="mt-1 block max-w-40 truncate text-xs text-slate-500"><%= current_school.name %></small></span><% end %>
-        <div class="ml-auto mr-3 hidden xl:block"><%= render "shared/global_search" %></div><button type="button" class="flex h-11 w-11 items-center justify-center rounded-2xl bg-indigo-50 text-2xl font-bold text-indigo-700 lg:hidden" data-action="mobile-menu#toggle" aria-label="Open navigation"><span data-mobile-menu-target="icon">☰</span></button>
-        <div class="absolute left-4 right-4 top-[calc(100%+0.5rem)] hidden max-h-[calc(100vh-6rem)] flex-col items-stretch gap-1 overflow-y-auto rounded-3xl border border-slate-200 bg-white p-3 text-sm font-semibold text-slate-700 shadow-2xl lg:static lg:flex lg:max-h-none lg:flex-row lg:flex-wrap lg:items-center lg:justify-end lg:gap-x-1 lg:gap-y-1 lg:overflow-visible lg:border-0 lg:bg-transparent lg:p-0 lg:shadow-none" data-mobile-menu-target="panel" data-action="click->mobile-menu#close">
-          <div class="mb-2 lg:hidden"><%= render "shared/global_search" %></div><%= render "shared/navigation" %>
+      <aside class="fixed inset-y-0 left-0 z-50 hidden w-64 flex-col bg-[#171044] text-white shadow-2xl lg:flex" data-mobile-menu-target="panel">
+        <div class="flex h-20 items-center gap-3 border-b border-white/10 px-5">
+          <%= link_to root_path, class: "flex min-w-0 items-center gap-3" do %><span class="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-white/20 bg-white text-lg font-black text-violet-800"><% if current_school.logo.attached? %><%= image_tag current_school.logo, class: "h-full w-full object-contain p-1", alt: "" %><% else %>S<% end %></span><span class="min-w-0"><strong class="block truncate text-sm leading-tight"><%= current_school.name %></strong><small class="block text-[10px] text-violet-300">School Management System</small></span><% end %>
+          <button type="button" class="ml-auto text-2xl text-white lg:hidden" data-action="mobile-menu#toggle" aria-label="Close navigation">×</button>
         </div>
-      </nav>
-    </header>
+        <nav class="flex-1 overflow-y-auto px-3 py-4"><%= render "shared/navigation" %></nav>
+      </aside>
+      <div class="lg:pl-64">
+        <header class="sticky top-0 z-40 flex h-20 items-center gap-4 border-b border-violet-100 bg-white/95 px-4 shadow-sm backdrop-blur sm:px-7">
+          <button type="button" class="flex h-11 w-11 items-center justify-center rounded-xl bg-violet-100 text-2xl font-black text-violet-800 lg:hidden" data-action="mobile-menu#toggle" aria-label="Open navigation"><span data-mobile-menu-target="icon">☰</span></button>
+          <div class="hidden w-full max-w-md sm:block"><%= render "shared/global_search" %></div>
+          <div class="ml-auto flex items-center gap-3"><span class="hidden text-right sm:block"><strong class="block text-sm text-slate-800"><%= current_user.full_name %></strong><small class="text-xs font-semibold text-violet-600"><%= current_user.role.humanize %></small></span><span class="flex h-10 w-10 items-center justify-center rounded-full bg-violet-700 text-xs font-black text-white"><%= current_user.first_name.first %><%= current_user.last_name.first %></span></div>
+        </header>
+        <main class="min-h-[calc(100vh-5rem)] px-4 py-6 sm:px-7 sm:py-8">
+          <% flash.each do |type, message| %><div class="mb-6 flex items-center gap-3 rounded-xl border px-5 py-4 text-sm font-semibold shadow-sm <%= type.to_s == "alert" ? "border-red-200 bg-red-50 text-red-800" : "border-emerald-200 bg-emerald-50 text-emerald-800" %>"><span><%= type.to_s == "alert" ? "⚠" : "✓" %></span><%= message %></div><% end %>
+          <%= yield %>
+        </main>
+      </div>
+    <% else %>
+      <main class="mx-auto min-h-screen max-w-7xl px-4 py-8 sm:px-6"><% flash.each do |type, message| %><div class="mb-6 rounded-xl border px-5 py-4"><%= message %></div><% end %><%= yield %></main>
     <% end %>
-    <main class="relative mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-9">
-      <% flash.each do |type, message| %>
-        <div class="mb-6 flex items-center gap-3 rounded-2xl border px-5 py-4 text-sm font-semibold shadow-sm <%= type.to_s == "alert" ? "border-red-200 bg-red-50 text-red-800" : "border-emerald-200 bg-emerald-50 text-emerald-800" %>"><span class="text-lg"><%= type.to_s == "alert" ? "⚠" : "✓" %></span><%= message %></div>
-      <% end %>
-      <%= yield %>
-    </main>
-    <% if authenticated? %><footer class="mx-auto max-w-7xl px-4 pb-8 text-center text-xs text-slate-400 sm:px-6">SchoolOS · <%= current_school.name %> · <%= Date.current.year %></footer><% end %>
   </body>
 </html>
