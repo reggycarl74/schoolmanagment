@@ -2,5 +2,5 @@
   <%= render "report_cards/report_header" %>
   <div class="mt-6 flex items-center justify-between border-y-2 border-slate-900 py-3"><span class="font-bold"><%= @term&.name %> summary</span><span class="text-xl font-black"><%= number_to_percentage(@overall_average, precision: 1) %></span></div>
   <table class="mt-4 w-full text-sm"><thead><tr class="border-b-2 border-slate-900"><th class="py-2 text-left">Subject</th><th class="py-2 text-right">Score</th><th class="py-2 text-right">Grade</th></tr></thead><tbody><% @subject_results.each do |row| %><tr class="border-b"><td class="py-2 font-semibold"><%= row[:subject].name %></td><td class="py-2 text-right"><%= number_to_percentage(row[:percentage], precision: 0) %></td><td class="py-2 text-right font-black"><%= row[:scale]&.letter || "—" %></td></tr><% end %></tbody></table>
-  <%= render "report_cards/report_footer" %>
+  <%= render "report_cards/combined_score_summary" %><%= render "report_cards/report_footer" %>
 </article>

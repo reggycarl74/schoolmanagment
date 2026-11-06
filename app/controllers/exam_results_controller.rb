@@ -48,6 +48,14 @@ class ExamResultsController < ApplicationController
     render :new, status: :unprocessable_entity
   end
 
+  def import
+    load_selected_records
+    imported = ResultSpreadsheetImport.new(file: params[:file], classroom: @classroom, course: @course, term: @term, components: @components, graded_by: current_user).call
+    redirect_to new_exam_result_path(filter_params), notice: "Imported results for #{imported} students."
+  rescue ResultSpreadsheetImport::Error, ActiveRecord::RecordNotFound => error
+    redirect_to new_exam_result_path(filter_params), alert: "Result upload failed. No scores were changed. #{error.message}"
+  end
+
   private
 
   def filter_params

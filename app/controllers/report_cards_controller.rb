@@ -10,6 +10,7 @@ class ReportCardsController < ApplicationController
     @grades = grades_for_term
     @subject_results = build_subject_results
     @overall_average = @subject_results.any? ? @subject_results.sum { |result| result[:total_percentage] } / @subject_results.size : 0
+    @combined_result = build_combined_result
     @comments = @term ? @student.report_card_comments.where(term: @term).includes(:author).order(:kind) : ReportCardComment.none
     @comments = @comments.where(approved: true) if current_user.parent? || current_user.student?
     @remark_templates = current_school.report_card_remark_templates.available
@@ -60,5 +61,14 @@ class ReportCardsController < ApplicationController
 
     earned = grades.sum { |grade| grade.points.to_d }
     (earned / possible * target).round(1)
+  end
+
+  def build_combined_result
+    earned = @subject_results.sum { |result| result[:earned] }
+    possible = @subject_results.sum { |result| result[:possible] }
+    raw_score = possible.positive? ? earned / possible * 100 : 0
+    scale = current_school.grading_scales_for(@classroom)
+      .where("minimum_percentage <= ?", raw_score).order(minimum_percentage: :desc).first
+    { earned:, possible:, raw_score:, grade: scale&.letter || "—", remark: scale&.remark || "Not graded" }
   end
 end

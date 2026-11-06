@@ -15,19 +15,33 @@ class TeachingAssignmentsController < ApplicationController
   end
 
   def create
-    classroom = current_school.classrooms.find(assignment_params[:classroom_id])
-    teacher = current_school.teachers.find(assignment_params[:teacher_id])
-    subject = current_school.subjects.find(assignment_params[:subject_id])
-    @assignment = TeachingAssignment.new(classroom:, subject:, teacher:, lead: assignment_params[:lead])
-
-    if @assignment.save
-      redirect_to teaching_assignments_path, notice: "Teacher was assigned successfully."
-    else
-      render :new, status: :unprocessable_entity
+    attributes = bulk_assignment_params
+    classroom = current_school.classrooms.find(attributes[:classroom_id])
+    teacher = current_school.teachers.find(attributes[:teacher_id])
+    subjects = current_school.subjects.where(id: attributes[:subject_ids].reject(&:blank?))
+    if subjects.empty?
+      invalid = TeachingAssignment.new
+      invalid.errors.add(:base, "Select at least one subject.")
+      raise ActiveRecord::RecordInvalid.new(invalid)
     end
+
+    created = 0
+    ActiveRecord::Base.transaction do
+      subjects.each do |subject|
+        assignment = TeachingAssignment.find_or_initialize_by(classroom:, subject:, teacher:)
+        assignment.lead = attributes[:lead]
+        created += 1 if assignment.new_record?
+        assignment.save!
+      end
+    end
+    redirect_to teaching_assignments_path, notice: "Teacher was assigned to #{subjects.count} subject#{'s' unless subjects.one?}. #{created} new assignment#{'s' unless created == 1} created."
   rescue ActiveRecord::RecordNotFound => error
     @assignment ||= TeachingAssignment.new
     @assignment.errors.add(:base, error.message)
+    render :new, status: :unprocessable_entity
+  rescue ActiveRecord::RecordInvalid => error
+    @assignment = error.record
+    load_options
     render :new, status: :unprocessable_entity
   end
 
@@ -62,6 +76,10 @@ class TeachingAssignmentsController < ApplicationController
 
   def assignment_params
     params.expect(teaching_assignment: %i[teacher_id classroom_id subject_id lead])
+  end
+
+  def bulk_assignment_params
+    params.require(:teaching_assignment).permit(:teacher_id, :classroom_id, :lead, subject_ids: [])
   end
 
   def load_options

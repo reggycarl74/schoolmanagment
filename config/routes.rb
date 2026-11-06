@@ -30,7 +30,9 @@ Rails.application.routes.draw do
   resources :assessments, only: :index do
     member { patch :advance }
   end
-  resources :exam_results, only: %i[index new create]
+  resources :exam_results, only: %i[index new create] do
+    collection { post :import }
+  end
   resources :lesson_notes, only: %i[index new create edit update] do
     post :extract, on: :collection
   end

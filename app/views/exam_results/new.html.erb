@@ -24,6 +24,10 @@
     <p><span class="text-slate-400">Term:</span> <strong class="text-amber-300"><%= @term.name %></strong></p>
   </div>
 
+  <section class="border-x border-slate-300 bg-violet-50/70 px-5 py-4 print:hidden">
+    <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between"><div><h2 class="font-black text-slate-900">Upload results from Excel</h2><p class="mt-1 text-xs text-slate-600">Upload XLSX, XLS, or CSV. The first row must contain <strong>admission_number</strong> and these result columns: <strong><%= @components.values.pluck(:title).join(", ") %></strong>. The upload is all-or-nothing.</p></div><%= form_with url: import_exam_results_path(classroom_id: @classroom.id, subject_id: @subject.id, term_id: @term.id), multipart: true, class: "flex w-full flex-col gap-2 sm:flex-row sm:items-end lg:max-w-xl" do |form| %><div class="flex-1"><%= form.label :file, "Excel or CSV file", class: "field-label" %><%= form.file_field :file, accept: ".xlsx,.xls,.csv", required: true, class: "form-input bg-white" %></div><%= form.submit "Upload results", class: "primary-button" %><% end %></div>
+  </section>
+
   <%= form_with url: exam_results_path(classroom_id: @classroom.id, subject_id: @subject.id, term_id: @term.id), method: :post do %>
     <div class="overflow-x-auto border-x border-b border-slate-300 bg-blue-50 shadow-sm">
       <table class="min-w-[1000px] w-full border-collapse text-left" data-controller="score-grid">

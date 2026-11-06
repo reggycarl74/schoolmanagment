@@ -1,4 +1,6 @@
 teacher_math:
   course_section: assigned_math
+  classroom: assigned
+  subject: math
   teacher: one
   lead: true
