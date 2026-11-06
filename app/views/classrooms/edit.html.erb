@@ -1,0 +1,3 @@
+<% content_for :title, "Edit class · SchoolOS" %>
+<%= render "shared/form_header", title: "Edit #{@classroom.name}", back_path: classrooms_path %>
+<%= render "form", classroom: @classroom %>

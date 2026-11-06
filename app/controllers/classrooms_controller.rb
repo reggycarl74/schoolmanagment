@@ -1,6 +1,7 @@
 class ClassroomsController < ResourceIndexController
-  before_action :require_administrator, only: %i[new create]
-  before_action :load_options, only: %i[new create]
+  before_action :require_administrator, only: %i[new create edit update]
+  before_action :set_classroom, only: %i[edit update]
+  before_action :load_options, only: %i[new create edit update]
 
   def index
     @records = accessible_classrooms.includes(:academic_year, :grade_level, :homeroom_teacher).order(created_at: :desc).limit(50)
@@ -20,10 +21,24 @@ class ClassroomsController < ResourceIndexController
     end
   end
 
+  def edit; end
+
+  def update
+    if @classroom.update(classroom_params)
+      redirect_to classrooms_path, notice: "Class settings were updated successfully."
+    else
+      render :edit, status: :unprocessable_entity
+    end
+  end
+
   private
 
   def classroom_params
-    params.expect(classroom: %i[name academic_year_id grade_level_id homeroom_teacher_id capacity])
+    params.expect(classroom: %i[name academic_year_id grade_level_id homeroom_teacher_id capacity report_template])
+  end
+
+  def set_classroom
+    @classroom = current_school.classrooms.find(params[:id])
   end
 
   def load_options

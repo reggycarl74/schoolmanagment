@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_07_23_140000) do
+ActiveRecord::Schema[8.0].define(version: 2026_11_06_110000) do
   create_table "academic_years", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.bigint "school_id", null: false
     t.string "name", null: false
@@ -178,6 +178,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_07_23_140000) do
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.bigint "result_entry_term_id"
+    t.integer "report_template", default: 0, null: false
     t.index ["academic_year_id", "name"], name: "index_classrooms_on_academic_year_id_and_name", unique: true
     t.index ["academic_year_id"], name: "index_classrooms_on_academic_year_id"
     t.index ["grade_level_id"], name: "index_classrooms_on_grade_level_id"

@@ -1,4 +1,6 @@
 class Classroom < ApplicationRecord
+  enum :report_template, { classic: 0, jhs_detailed: 1, compact_summary: 2 }, default: :classic
+
   belongs_to :school
   belongs_to :academic_year
   belongs_to :grade_level
@@ -13,4 +15,5 @@ class Classroom < ApplicationRecord
 
   validates :name, presence: true, uniqueness: { scope: :academic_year_id }
   validates :capacity, numericality: { only_integer: true, greater_than: 0 }, allow_nil: true
+  validates :report_template, presence: true
 end

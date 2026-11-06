@@ -24,7 +24,7 @@ Rails.application.routes.draw do
     end
   end
   resources :teachers, only: %i[index new create]
-  resources :classrooms, only: %i[index new create]
+  resources :classrooms, only: %i[index new create edit update]
   resources :subjects, only: %i[index new create]
   resources :course_sections, only: :index
   resources :assessments, only: :index do

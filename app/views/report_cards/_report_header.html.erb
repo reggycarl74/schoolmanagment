@@ -1,0 +1,7 @@
+<div class="text-center">
+  <% if current_school.logo.attached? %><%= image_tag current_school.logo, class: "mx-auto mb-3 h-20 w-20 object-contain", alt: "#{current_school.name} logo" %><% end %>
+  <h1 class="text-2xl font-black"><%= current_school.name %></h1>
+  <% if current_school.address.present? %><p class="mt-1 text-sm opacity-75"><%= current_school.address %></p><% end %>
+  <h2 class="mt-4 text-xl font-bold"><%= @student.full_name %></h2>
+  <% if @term %><p class="mt-1 text-sm"><%= @classroom&.name %> · <%= @term.academic_year.name %> · <%= @term.name %></p><% end %>
+</div>
