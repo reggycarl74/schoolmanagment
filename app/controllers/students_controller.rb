@@ -1,6 +1,6 @@
 class StudentsController < ResourceIndexController
-  before_action :require_administrator, only: %i[new create edit update import]
-  before_action :load_classrooms, only: %i[new create edit update]
+  before_action :require_administrator, only: %i[new create edit update import import_template]
+  before_action :load_classrooms, only: %i[index new create edit update]
   before_action :set_student, only: %i[show edit update]
 
   def index
@@ -39,19 +39,16 @@ class StudentsController < ResourceIndexController
     end
   end
 
+  def import_template
+    send_data StudentCsvImport.template, filename: "student-import-template.csv", type: "text/csv"
+  end
+
   def import
-    require "csv"
-    imported = 0
-    CSV.foreach(params[:file].path, headers: true) do |row|
-      student = current_school.students.find_or_initialize_by(admission_number: row["admission_number"])
-      student.assign_attributes(row.to_h.slice("first_name", "last_name", "date_of_birth", "gender", "admitted_on"))
-      student.status ||= :active
-      student.save!
-      imported += 1
-    end
-    redirect_to students_path, notice: "Imported #{imported} students."
-  rescue CSV::MalformedCSVError, ActiveRecord::RecordInvalid => error
-    redirect_to students_path, alert: "Import failed: #{error.message}"
+    classroom = current_school.classrooms.find_by(id: params[:classroom_id])
+    imported = StudentCsvImport.new(school: current_school, classroom:, file: params[:file]).call
+    redirect_to students_path, notice: "Imported #{imported} students into #{classroom.name} (#{classroom.academic_year.name})."
+  rescue StudentCsvImport::Error => error
+    redirect_to students_path, alert: "Import failed. No changes were saved. #{error.message}"
   end
 
   def assessments

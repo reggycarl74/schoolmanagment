@@ -5,4 +5,26 @@
     <li class="flex flex-col gap-3 px-6 py-4 sm:flex-row sm:items-center sm:justify-between"><div><p class="font-semibold text-slate-900"><%= student.full_name %></p><p class="text-sm text-slate-500"><%= student.admission_number %></p></div><div class="flex gap-4"><%= link_to "Profile", student_path(student), class: "text-sm font-semibold text-indigo-700" %><%= link_to "Assessments", assessments_student_path(student), class: "text-sm font-semibold text-indigo-700" %></div></li>
   <% end %></ul><% else %><p class="p-10 text-center text-slate-500">No students yet.</p><% end %>
 </div>
-<% if current_user.administrator? %><div class="mt-6 flex flex-wrap items-end justify-between gap-4"><%= link_to "Export CSV", students_path(format: :csv), class: "text-sm font-semibold text-indigo-700" %><%= form_with url: import_students_path, multipart: true, class: "flex items-end gap-2" do |f| %><div><%= f.label :file, "Import student CSV", class: "field-label" %><%= f.file_field :file, accept: ".csv", required: true, class: "form-input" %></div><%= f.submit "Import", class: "primary-button" %><% end %></div><% end %>
+<% if current_user.administrator? %>
+  <section class="mt-6 rounded-2xl border border-slate-200 bg-white p-6">
+    <h2 class="text-xl font-bold text-slate-900">Upload students by class</h2>
+    <p class="mt-2 text-sm text-slate-500">Choose the class and academic year for every student in your file. Existing admission numbers update student profiles; repeat uploads do not duplicate enrollments. Students already enrolled in another class in the same year must be transferred separately.</p>
+    <div class="mt-4 flex flex-wrap gap-4">
+      <%= link_to "Download CSV template", import_template_students_path, class: "text-sm font-semibold text-indigo-700" %>
+      <%= link_to "Export students CSV", students_path(format: :csv), class: "text-sm font-semibold text-indigo-700" %>
+    </div>
+    <%= form_with url: import_students_path, multipart: true, class: "mt-4 grid gap-4 sm:grid-cols-3 sm:items-end" do |f| %>
+      <div>
+        <%= f.label :classroom_id, "Class and academic year", class: "field-label" %>
+        <%= f.select :classroom_id, @classrooms.map { |classroom| ["#{classroom.name} · #{classroom.academic_year.name}", classroom.id] }, { prompt: "Select class" }, required: true, class: "form-input" %>
+      </div>
+      <div>
+        <%= f.label :file, "Student CSV (UTF-8, up to 2 MB)", class: "field-label" %>
+        <%= f.file_field :file, accept: ".csv,text/csv", required: true, class: "form-input" %>
+      </div>
+      <%= f.submit "Upload students", class: "primary-button" %>
+    <% end %>
+    <p class="mt-4 text-sm text-slate-500">Required columns: admission_number, first_name, last_name, date_of_birth, gender, admitted_on. Dates: YYYY-MM-DD. Gender: female, male, non_binary, or undisclosed. Keep admission numbers as text to preserve leading zeros.</p>
+    <p class="mt-2 text-sm text-slate-500">Optional: status (active, graduated, transferred, withdrawn), medical_notes, enrolled_on. New students default to active; enrollment date defaults to admitted_on. Blank optional fields preserve existing details. All rows must be valid before any changes are saved.</p>
+  </section>
+<% end %>

@@ -15,7 +15,10 @@ Rails.application.routes.draw do
 
   resources :students, only: %i[index show new create edit update] do
     member { get :assessments }
-    collection { post :import }
+    collection do
+      post :import
+      get :import_template
+    end
   end
   resources :guardians, only: %i[index show new create edit update] do
     member do

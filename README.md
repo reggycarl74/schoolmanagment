@@ -32,3 +32,23 @@ Parent portal: `parent1@example.test` / `Parent123!`. Student portal: `student@e
 Role-scoped portals, admissions and promotion, bulk attendance, configurable assessments, approval and publishing, bulk result entry, report cards, lesson notes, timetable, announcements, billing and payments, student documents, and audit history.
 
 See [docs/architecture.md](docs/architecture.md) for the frontend decision and schema explanation.
+
+## Import students by class
+
+As an administrator, open **Students → Upload students by class**. Download the
+CSV template, fill one row per student, select the destination class and academic
+year, then upload a UTF-8 CSV (maximum 2 MB).
+
+Required columns are `admission_number`, `first_name`, `last_name`,
+`date_of_birth`, `gender`, and `admitted_on`. Use `YYYY-MM-DD` dates and gender
+`female`, `male`, `non_binary`, or `undisclosed`. Optional columns are `status`,
+`medical_notes`, and `enrolled_on`. Enrollment date defaults to admission date;
+new students default to active. Blank optional fields preserve existing values.
+Store admission numbers as text in spreadsheets to retain leading zeros.
+
+The import matches admission numbers within the signed-in school and creates
+missing class enrollments. Re-uploading does not duplicate students or
+enrollments. Existing enrollments are preserved; transfers to another class in
+the same academic year must be handled separately. Any invalid row cancels the
+entire upload and reports the row number. Internal IDs, balances, and guardian
+records are not modified by the upload.
