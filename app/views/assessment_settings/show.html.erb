@@ -39,7 +39,7 @@
             <label class="flex min-h-11 items-center gap-2 self-end rounded-lg border border-violet-100 bg-white px-3 py-2 text-sm font-bold text-slate-700 xl:col-span-2"><%= form.check_box :active %><span>Active</span></label>
           </div>
           <div class="mt-4 flex flex-col-reverse gap-2 border-t border-violet-100 pt-4 sm:flex-row sm:items-center sm:justify-end">
-            <%= link_to "Remove", assessment_setting_component_path(item), data: { turbo_method: :delete, turbo_confirm: "Remove #{item.title} from this workflow?" }, class: "inline-flex min-h-10 items-center justify-center rounded-lg px-4 text-sm font-bold text-rose-600 transition hover:bg-rose-50" %>
+            <%= button_tag "Remove", type: "submit", name: "_method", value: "delete", formaction: assessment_setting_component_path(item), formmethod: "post", data: { turbo_confirm: "Remove #{item.title} from this workflow?" }, class: "inline-flex min-h-10 cursor-pointer items-center justify-center rounded-lg px-4 text-sm font-bold text-rose-600 transition hover:bg-rose-50" %>
             <%= form.submit "Save component", class: "inline-flex min-h-10 cursor-pointer items-center justify-center rounded-lg bg-violet-700 px-5 text-sm font-bold text-white transition hover:bg-violet-800" %>
           </div>
         <% end %>
