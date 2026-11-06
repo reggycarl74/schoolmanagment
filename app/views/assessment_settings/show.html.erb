@@ -1,6 +1,66 @@
-<% content_for :title, "Assessment settings · SchoolOS" %><h1 class="text-3xl font-bold">Assessment and report workflow</h1>
-<%= form_with url: assessment_settings_path, method: :get, class: "mt-6 flex gap-3 rounded-2xl border bg-white p-5" do |form| %><%= form.collection_select :classroom_id, @classrooms, :id, :name, { prompt: "Choose a class", selected: @classroom&.id }, class: "form-input flex-1" %><%= form.submit "Configure class", class: "primary-button" %><% end %>
+<% content_for :title, "Assessment settings · SchoolOS" %>
 
-<% if @classroom %><section class="mt-6 rounded-2xl border bg-white p-6"><h2 class="text-xl font-bold"><%= @classroom.name %> controls</h2><%= form_with url: assessment_settings_path, class: "mt-5 space-y-6" do |form| %><%= hidden_field_tag :setting_type, "classroom" %><%= hidden_field_tag :classroom_id, @classroom.id %><div><%= label_tag :result_entry_term_id, "Locked result-entry term", class: "field-label" %><%= select_tag :result_entry_term_id, options_from_collection_for_select(@classroom.academic_year.terms.order(:position), :id, :name, @classroom.result_entry_term_id), include_blank: "Teachers cannot enter results", class: "form-input" %><p class="mt-2 text-xs text-slate-500">Teachers cannot change this term from the result-entry screen.</p></div><div><h3 class="font-bold">Report-card subject order</h3><div class="mt-3 grid gap-3 sm:grid-cols-2"><% @subjects.each do |subject| %><label class="flex items-center justify-between gap-3 rounded-xl bg-slate-50 p-3 text-sm"><span><%= subject.name %></span><%= number_field_tag "subject_positions[#{subject.id}]", @subject_positions[subject.id]&.position, min: 1, class: "w-24 rounded-lg border px-3 py-2", placeholder: "Order" %></label><% end %></div></div><%= form.submit "Save class controls", class: "primary-button" %><% end %></section><% end %>
+<div class="rounded-xl border border-violet-100 bg-white px-6 py-6 shadow-sm sm:px-7">
+  <p class="text-xs font-black uppercase tracking-[0.2em] text-violet-600">Academics</p>
+  <h1 class="mt-1 text-3xl font-black text-slate-900">Assessment and report workflow</h1>
+  <p class="mt-2 max-w-3xl text-sm text-slate-500">Configure result columns, lock the active term, arrange report-card subjects, and manage the school grading scale.</p>
+</div>
 
-<div class="mt-8 grid gap-8 lg:grid-cols-2"><section class="rounded-2xl border bg-white p-6"><h2 class="text-xl font-bold"><%= @classroom ? "#{@classroom.name} assessment workflow" : "School default assessment workflow" %></h2><p class="mt-2 text-sm text-slate-500">These components become the columns teachers see in Enter Results, ordered by position.</p><div class="mt-4 space-y-3"><% @components.each do |item| %><%= form_with model: item, url: assessment_setting_component_path(item), method: :patch, class: "grid gap-2 rounded-2xl border bg-slate-50 p-3 sm:grid-cols-12 sm:items-center" do |form| %><%= form.number_field :position, min: 1, required: true, class: "form-input sm:col-span-2", title: "Position" %><%= form.text_field :title, required: true, class: "form-input sm:col-span-3", title: "Column name" %><%= form.number_field :maximum_points, min: 0.01, step: 0.01, required: true, class: "form-input sm:col-span-2", title: "Maximum points" %><%= form.select :kind, Assessment.kinds.keys.map { |kind| [kind.humanize, kind] }, {}, class: "form-input sm:col-span-2" %><label class="flex items-center justify-center gap-2 text-xs font-bold sm:col-span-1"><%= form.check_box :active %> Active</label><%= form.submit "Save", class: "rounded-xl bg-indigo-700 px-3 py-2 text-sm font-bold text-white sm:col-span-1" %><%= link_to "Remove", assessment_setting_component_path(item), data: { turbo_method: :delete, turbo_confirm: "Remove #{item.title} from this workflow?" }, class: "text-center text-xs font-bold text-rose-600 sm:col-span-1" %><% end %><% end %></div><% if @classroom %><%= form_with url: assessment_settings_path, scope: :assessment_component, class: "mt-6 grid gap-3 rounded-2xl border-2 border-dashed border-indigo-200 p-4" do |form| %><%= hidden_field_tag :setting_type, "component" %><%= form.hidden_field :classroom_id, value: @classroom.id %><h3 class="font-bold">Add a result column</h3><%= form.text_field :title, required: true, placeholder: "Component name, e.g. Practical", class: "form-input" %><%= form.number_field :maximum_points, required: true, min: 0.01, step: 0.01, placeholder: "Maximum points", class: "form-input" %><%= form.select :kind, Assessment.kinds.keys.map { |kind| [kind.humanize, kind] }, {}, class: "form-input" %><%= form.number_field :position, required: true, min: 1, placeholder: "Display position", class: "form-input" %><%= form.hidden_field :active, value: true %><%= form.submit "Add to #{@classroom.name} workflow", class: "primary-button" %><% end %><% else %><p class="mt-6 rounded-xl bg-amber-50 p-4 text-sm font-semibold text-amber-800">Choose a class above to create or edit its assessment workflow.</p><% end %></section><section class="rounded-2xl border bg-white p-6"><h2 class="text-xl font-bold">Grade bands</h2><div class="mt-4 divide-y"><% @scales.each do |scale| %><p class="flex justify-between py-3"><span><strong><%= scale.letter %></strong> · <%= scale.remark %></span><span><%= scale.minimum_percentage %>%+</span></p><% end %></div><%= form_with url: assessment_settings_path, scope: :grading_scale, class: "mt-6 grid gap-3" do |form| %><%= hidden_field_tag :setting_type, "scale" %><%= form.text_field :letter, placeholder: "Grade (A)", class: "form-input" %><%= form.number_field :minimum_percentage, placeholder: "Minimum percentage", class: "form-input" %><%= form.text_field :remark, placeholder: "Remark", class: "form-input" %><%= form.submit "Add grade band", class: "primary-button" %><% end %></section></div>
+<%= form_with url: assessment_settings_path, method: :get, class: "mt-6 grid gap-4 rounded-xl border border-violet-100 bg-white p-5 shadow-sm sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end" do |form| %>
+  <div><%= form.label :classroom_id, "Class to configure", class: "field-label" %><%= form.collection_select :classroom_id, @classrooms, :id, :name, { prompt: "Choose a class", selected: @classroom&.id }, class: "form-input" %></div>
+  <%= form.submit "Configure class", class: "primary-button" %>
+<% end %>
+
+<% if @classroom %>
+  <section class="mt-6 rounded-xl border border-violet-100 bg-white p-6 shadow-sm">
+    <div><p class="text-xs font-black uppercase tracking-wider text-violet-600">Class controls</p><h2 class="mt-1 text-xl font-black text-slate-900"><%= @classroom.name %></h2></div>
+    <%= form_with url: assessment_settings_path, class: "mt-5 space-y-6" do |form| %>
+      <%= hidden_field_tag :setting_type, "classroom" %><%= hidden_field_tag :classroom_id, @classroom.id %>
+      <div class="max-w-xl"><%= label_tag :result_entry_term_id, "Locked result-entry term", class: "field-label" %><%= select_tag :result_entry_term_id, options_from_collection_for_select(@classroom.academic_year.terms.order(:position), :id, :name, @classroom.result_entry_term_id), include_blank: "Teachers cannot enter results", class: "form-input" %><p class="mt-2 text-xs text-slate-500">Teachers cannot change this term from the result-entry screen.</p></div>
+      <div><h3 class="font-black text-slate-900">Report-card subject order</h3><div class="mt-3 grid gap-3 sm:grid-cols-2 xl:grid-cols-3"><% @subjects.each do |subject| %><label class="flex items-center justify-between gap-3 rounded-lg border border-violet-100 bg-violet-50/40 p-3 text-sm font-semibold"><span><%= subject.name %></span><%= number_field_tag "subject_positions[#{subject.id}]", @subject_positions[subject.id]&.position, min: 1, class: "w-20 rounded-lg border border-violet-200 bg-white px-3 py-2", placeholder: "Order" %></label><% end %></div></div>
+      <%= form.submit "Save class controls", class: "primary-button" %>
+    <% end %>
+  </section>
+<% end %>
+
+<div class="mt-6 grid items-start gap-6 xl:grid-cols-[minmax(0,1.35fr)_minmax(22rem,0.65fr)]">
+  <section class="min-w-0 rounded-xl border border-violet-100 bg-white p-5 shadow-sm sm:p-6">
+    <h2 class="text-xl font-black text-slate-900"><%= @classroom ? "#{@classroom.name} assessment workflow" : "School default assessment workflow" %></h2>
+    <p class="mt-2 text-sm text-slate-500">These components become the columns teachers see in Enter Results, ordered by position.</p>
+
+    <div class="mt-5 space-y-4">
+      <% @components.each do |item| %>
+        <%= form_with model: item, url: assessment_setting_component_path(item), method: :patch, class: "rounded-xl border border-violet-100 bg-violet-50/30 p-4" do |form| %>
+          <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-12">
+            <div class="xl:col-span-2"><%= form.label :position, "Position", class: "field-label" %><%= form.number_field :position, min: 1, required: true, class: "form-input" %></div>
+            <div class="sm:col-span-2 xl:col-span-4"><%= form.label :title, "Column name", class: "field-label" %><%= form.text_field :title, required: true, class: "form-input" %></div>
+            <div class="xl:col-span-2"><%= form.label :maximum_points, "Maximum", class: "field-label" %><%= form.number_field :maximum_points, min: 0.01, step: 0.01, required: true, class: "form-input" %></div>
+            <div class="xl:col-span-2"><%= form.label :kind, "Type", class: "field-label" %><%= form.select :kind, Assessment.kinds.keys.map { |kind| [kind.humanize, kind] }, {}, class: "form-input" %></div>
+            <label class="flex min-h-11 items-center gap-2 self-end rounded-lg border border-violet-100 bg-white px-3 py-2 text-sm font-bold text-slate-700 xl:col-span-2"><%= form.check_box :active %><span>Active</span></label>
+          </div>
+          <div class="mt-4 flex flex-col-reverse gap-2 border-t border-violet-100 pt-4 sm:flex-row sm:items-center sm:justify-end">
+            <%= link_to "Remove", assessment_setting_component_path(item), data: { turbo_method: :delete, turbo_confirm: "Remove #{item.title} from this workflow?" }, class: "inline-flex min-h-10 items-center justify-center rounded-lg px-4 text-sm font-bold text-rose-600 transition hover:bg-rose-50" %>
+            <%= form.submit "Save component", class: "inline-flex min-h-10 cursor-pointer items-center justify-center rounded-lg bg-violet-700 px-5 text-sm font-bold text-white transition hover:bg-violet-800" %>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+
+    <% if @classroom %>
+      <%= form_with url: assessment_settings_path, scope: :assessment_component, class: "mt-6 rounded-xl border-2 border-dashed border-violet-200 bg-violet-50/30 p-5" do |form| %>
+        <%= hidden_field_tag :setting_type, "component" %><%= form.hidden_field :classroom_id, value: @classroom.id %><%= form.hidden_field :active, value: true %>
+        <h3 class="font-black text-slate-900">Add a result column</h3>
+        <div class="mt-4 grid gap-4 sm:grid-cols-2"><div class="sm:col-span-2"><%= form.label :title, "Component name", class: "field-label" %><%= form.text_field :title, required: true, placeholder: "e.g. Practical", class: "form-input" %></div><div><%= form.label :maximum_points, "Maximum points", class: "field-label" %><%= form.number_field :maximum_points, required: true, min: 0.01, step: 0.01, class: "form-input" %></div><div><%= form.label :kind, "Type", class: "field-label" %><%= form.select :kind, Assessment.kinds.keys.map { |kind| [kind.humanize, kind] }, {}, class: "form-input" %></div><div><%= form.label :position, "Display position", class: "field-label" %><%= form.number_field :position, required: true, min: 1, class: "form-input" %></div></div>
+        <%= form.submit "Add to #{@classroom.name} workflow", class: "primary-button mt-5" %>
+      <% end %>
+    <% else %>
+      <p class="mt-6 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-amber-800">Choose a class above to create or edit its assessment workflow.</p>
+    <% end %>
+  </section>
+
+  <section class="rounded-xl border border-violet-100 bg-white p-5 shadow-sm sm:p-6 xl:sticky xl:top-24">
+    <h2 class="text-xl font-black text-slate-900">Grade bands</h2>
+    <div class="mt-4 divide-y divide-violet-100"><% @scales.each do |scale| %><p class="flex items-center justify-between gap-4 py-3 text-sm"><span><strong class="text-slate-900"><%= scale.letter %></strong> · <%= scale.remark %></span><span class="shrink-0 font-bold text-violet-700"><%= scale.minimum_percentage %>%+</span></p><% end %></div>
+    <%= form_with url: assessment_settings_path, scope: :grading_scale, class: "mt-6 grid gap-3 border-t border-violet-100 pt-5" do |form| %><%= hidden_field_tag :setting_type, "scale" %><div><%= form.label :letter, "Grade", class: "field-label" %><%= form.text_field :letter, placeholder: "A", class: "form-input" %></div><div><%= form.label :minimum_percentage, class: "field-label" %><%= form.number_field :minimum_percentage, placeholder: "80", class: "form-input" %></div><div><%= form.label :remark, class: "field-label" %><%= form.text_field :remark, placeholder: "Excellent", class: "form-input" %></div><%= form.submit "Add grade band", class: "primary-button" %><% end %>
+  </section>
+</div>
