@@ -12,6 +12,7 @@ class Classroom < ApplicationRecord
   has_many :teaching_assignments, dependent: :destroy
   has_many :teachers, through: :teaching_assignments
   has_many :class_subject_orders, dependent: :destroy
+  has_many :grading_scales, dependent: :destroy
 
   validates :name, presence: true, uniqueness: { scope: :academic_year_id }
   validates :capacity, numericality: { only_integer: true, greater_than: 0 }, allow_nil: true

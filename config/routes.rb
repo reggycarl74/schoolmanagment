@@ -49,6 +49,7 @@ Rails.application.routes.draw do
   resource :assessment_settings, only: %i[show create]
   patch "assessment_settings/components/:id", to: "assessment_settings#update_component", as: :assessment_setting_component
   delete "assessment_settings/components/:id", to: "assessment_settings#destroy_component"
+  delete "assessment_settings/grade_bands/:id", to: "assessment_settings#destroy_scale", as: :assessment_setting_grade_band
   resources :invoices, only: %i[index show new create] do
     member do
       patch :cancel

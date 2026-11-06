@@ -44,8 +44,9 @@ class ReportCardsController < ApplicationController
       continuous_score = normalized_score(continuous_grades, 30)
       exam_score = normalized_score(exam_grades, 70)
       total_percentage = continuous_score + exam_score
-      scale = current_school.grading_scales.where("minimum_percentage <= ?", percentage).order(minimum_percentage: :desc).first
-      jhs_scale = current_school.grading_scales.where("minimum_percentage <= ?", total_percentage).order(minimum_percentage: :desc).first
+      scales = current_school.grading_scales_for(@classroom)
+      scale = scales.where("minimum_percentage <= ?", percentage).order(minimum_percentage: :desc).first
+      jhs_scale = scales.where("minimum_percentage <= ?", total_percentage).order(minimum_percentage: :desc).first
       { subject:, earned:, possible:, percentage:, scale:, continuous_score:, exam_score:, total_percentage:, jhs_scale: }
     end
     classroom = @student.enrollments.find { |enrollment| enrollment.classroom.academic_year_id == @term&.academic_year_id }&.classroom

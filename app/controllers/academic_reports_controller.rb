@@ -22,7 +22,7 @@ class AcademicReportsController < ApplicationController
     grades = Grade.joins(:enrollment, assessment: { course_section: :subject })
       .where(enrollments: { classroom_id: @classroom.id }, course_sections: { term_id: @term.id })
       .includes(enrollment: :student, assessment: { course_section: :subject })
-    scales = current_school.grading_scales.order(minimum_percentage: :desc).to_a
+    scales = current_school.grading_scales_for(@classroom).order(minimum_percentage: :desc).to_a
     grades.group_by(&:enrollment).map do |enrollment, records|
       earned = records.sum { |grade| grade.points.to_d }
       possible = records.sum { |grade| grade.assessment.maximum_points.to_d }

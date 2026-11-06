@@ -5,7 +5,8 @@ class AssessmentSettingsController < ApplicationController
     @classrooms = current_school.classrooms.includes(academic_year: :terms).order(:name)
     @classroom = current_school.classrooms.find_by(id: params[:classroom_id])
     @components = current_school.assessment_components.where(classroom: @classroom).order(:position)
-    @scales = current_school.grading_scales.order(minimum_percentage: :desc)
+    @scales = current_school.grading_scales.where(classroom: @classroom).order(minimum_percentage: :desc)
+    @using_default_scales = @classroom.present? && @scales.empty?
     @subjects = current_school.subjects.order(:name)
     @subject_positions = @classroom ? @classroom.class_subject_orders.index_by(&:subject_id) : {}
   end
@@ -16,7 +17,8 @@ class AssessmentSettingsController < ApplicationController
     end
 
     record = if params[:setting_type] == "scale"
-      current_school.grading_scales.new(params.expect(grading_scale: %i[letter minimum_percentage remark]))
+      classroom = current_school.classrooms.find_by(id: params.dig(:grading_scale, :classroom_id))
+      current_school.grading_scales.new(params.expect(grading_scale: %i[letter minimum_percentage remark]).merge(classroom:))
     else
       classroom = current_school.classrooms.find_by(id: params.dig(:assessment_component, :classroom_id))
       current_school.assessment_components.new(params.expect(assessment_component: %i[classroom_id title maximum_points kind position active]).merge(classroom: classroom))
@@ -40,6 +42,13 @@ class AssessmentSettingsController < ApplicationController
     classroom_id = component.classroom_id
     component.destroy!
     redirect_to assessment_settings_path(classroom_id: classroom_id), notice: "Assessment component was removed."
+  end
+
+  def destroy_scale
+    scale = current_school.grading_scales.find(params[:id])
+    classroom_id = scale.classroom_id
+    scale.destroy!
+    redirect_to assessment_settings_path(classroom_id:), notice: "Grade band was removed."
   end
 
   private

@@ -41,6 +41,11 @@ class School < ApplicationRecord
     sms_account_sid.present? && sms_auth_token.present? && sms_from_number.present?
   end
 
+  def grading_scales_for(classroom)
+    class_scales = grading_scales.where(classroom: classroom)
+    class_scales.exists? ? class_scales : grading_scales.where(classroom_id: nil)
+  end
+
   private
 
   def sms_encryptor

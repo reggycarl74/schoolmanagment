@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2026_11_06_110000) do
+ActiveRecord::Schema[8.0].define(version: 2026_11_06_150000) do
   create_table "academic_years", charset: "utf8mb4", collation: "utf8mb4_unicode_ci", force: :cascade do |t|
     t.bigint "school_id", null: false
     t.string "name", null: false
@@ -262,7 +262,9 @@ ActiveRecord::Schema[8.0].define(version: 2026_11_06_110000) do
     t.string "remark"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.index ["school_id", "letter"], name: "index_grading_scales_on_school_id_and_letter", unique: true
+    t.bigint "classroom_id"
+    t.index ["classroom_id"], name: "index_grading_scales_on_classroom_id"
+    t.index ["school_id", "classroom_id", "letter"], name: "idx_grading_scales_school_class_letter", unique: true
     t.index ["school_id"], name: "index_grading_scales_on_school_id"
   end
 
@@ -671,6 +673,7 @@ ActiveRecord::Schema[8.0].define(version: 2026_11_06_110000) do
   add_foreign_key "grades", "assessments"
   add_foreign_key "grades", "enrollments"
   add_foreign_key "grades", "users", column: "graded_by_id"
+  add_foreign_key "grading_scales", "classrooms"
   add_foreign_key "grading_scales", "schools"
   add_foreign_key "guardians", "schools"
   add_foreign_key "invoice_line_items", "invoices"

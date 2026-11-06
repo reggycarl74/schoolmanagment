@@ -201,7 +201,7 @@ end
 
 [ [ "A", 80, "Excellent" ], [ "B", 70, "Very good" ], [ "C", 60, "Good" ],
   [ "D", 50, "Pass" ], [ "F", 0, "Needs improvement" ] ].each do |letter, minimum_percentage, remark|
-  scale = school.grading_scales.find_or_initialize_by(letter:)
+  scale = school.grading_scales.find_or_initialize_by(letter:, classroom: nil)
   scale.update!(minimum_percentage:, remark:)
 end
 
