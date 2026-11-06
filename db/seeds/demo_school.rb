@@ -137,9 +137,10 @@ students = student_names.map.with_index do |(first_name, last_name, gender), ind
 end
 
 # JHS demo data exercises the purple 30/70 report form from end to end.
-jhs_grade_levels = [ "JHS 1", "JHS 2", "JHS 3" ].map.with_index(7) do |name, position|
+jhs_grade_levels = [ "JHS 1", "JHS 2", "JHS 3" ].map do |name|
   grade = school.grade_levels.find_or_initialize_by(name:)
-  grade.update!(position:)
+  grade.position ||= school.grade_levels.maximum(:position).to_i + 1
+  grade.save!
   grade
 end
 
