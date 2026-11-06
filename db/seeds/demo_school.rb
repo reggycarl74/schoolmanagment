@@ -192,9 +192,10 @@ assessment_components = [
   [ "Exam", 50, :exam ]
 ]
 
-assessment_components.each_with_index do |(title, maximum_points, kind), position|
+assessment_components.each do |title, maximum_points, kind|
   component = school.assessment_components.find_or_initialize_by(title:)
-  component.assign_attributes(maximum_points:, kind:, position: position + 1, active: true)
+  component.position ||= school.assessment_components.where(classroom_id: nil).maximum(:position).to_i + 1
+  component.assign_attributes(maximum_points:, kind:, active: true)
   component.save!
 end
 
