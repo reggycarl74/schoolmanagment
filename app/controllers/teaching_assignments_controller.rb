@@ -11,7 +11,7 @@ class TeachingAssignmentsController < ApplicationController
   end
 
   def new
-    @assignment = TeachingAssignment.new
+    @assignment = TeachingAssignment.new(teacher_id: params[:teacher_id])
   end
 
   def create

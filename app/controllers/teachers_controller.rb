@@ -1,7 +1,18 @@
 class TeachersController < ResourceIndexController
   before_action :require_administrator
   def index
-    @records = current_school.teachers.includes(:teaching_assignments, :assigned_classrooms).order(:last_name, :first_name).limit(50)
+    scope = current_school.teachers.includes(:user, :homeroom_classrooms, :teaching_assignments, :assigned_classrooms, :assigned_subjects)
+    @statistics = {
+      total: current_school.teachers.count,
+      active: current_school.teachers.where(active: true).count,
+      portal_accounts: current_school.teachers.where.not(user_id: nil).count,
+      unassigned: current_school.teachers.left_joins(:teaching_assignments).where(teaching_assignments: { id: nil }).distinct.count
+    }
+    if params[:q].present?
+      query = "%#{ActiveRecord::Base.sanitize_sql_like(params[:q].strip.downcase)}%"
+      scope = scope.where("LOWER(teachers.first_name) LIKE :query OR LOWER(teachers.last_name) LIKE :query OR LOWER(teachers.email) LIKE :query OR LOWER(teachers.employee_number) LIKE :query", query:)
+    end
+    @records = scope.order(:last_name, :first_name).limit(100)
   end
 
   def new
