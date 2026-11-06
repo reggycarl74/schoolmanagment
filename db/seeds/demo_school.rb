@@ -189,7 +189,7 @@ assessment_components = [
   [ "Class Work", 10, :assignment ],
   [ "Class Test", 10, :quiz ],
   [ "Project", 10, :project ],
-  [ "Exam", 50, :exam ]
+  [ "Exam", 100, :exam ]
 ]
 
 assessment_components.each do |title, maximum_points, kind|
